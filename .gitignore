@@ -1,2 +1,5 @@
 *.class
 *.log
+*.png
+*.dotty*
+target/
