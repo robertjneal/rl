@@ -18,17 +18,17 @@ case class TabularAgent(
   private var step: Step = Step(0)
 
   def act: Unit = {
+    step = step.increment
+
     val act = actionSelector(table(s))
     val (reward, _) = e.act(s, act)
     updater(table(s), act, reward, step)
 
     if (recordHistory) {
       val appendage = (e.isOptimal(s, act), reward)
-      println(appendage)
+      //println(appendage)
       mutableHistory = mutableHistory :+ appendage
     }
-
-    step = step.increment
   }
 
   def history: Array[(OptimalAct, Reward)] = mutableHistory
