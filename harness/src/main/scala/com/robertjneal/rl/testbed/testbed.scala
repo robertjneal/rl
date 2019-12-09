@@ -6,7 +6,7 @@ import com.robertjneal.rl.Types._
 
 case class MeanOptimal(meanRewards: DenseVector[Double], optimalActs: DenseVector[Double])
 
-def test(agent: TabularAgent, runs: Int, steps: Int): MeanOptimal = {
+def run(agent: TabularAgent, runs: Int, steps: Int): MeanOptimal = {
   val meansOptimals: MeanOptimal = (1 to runs)
     .foldLeft(MeanOptimal(DenseVector.zeros[Double](steps), DenseVector.zeros[Double](steps)))((acc: MeanOptimal, elem: Int) => {
         val a = agent.copy()
