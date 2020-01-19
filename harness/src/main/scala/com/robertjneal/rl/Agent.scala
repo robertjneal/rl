@@ -26,7 +26,6 @@ case class TabularAgent(
 
     if (recordHistory) {
       val appendage = (e.isOptimal(s, act), reward)
-      //println(appendage)
       mutableHistory = mutableHistory :+ appendage
     }
   }
