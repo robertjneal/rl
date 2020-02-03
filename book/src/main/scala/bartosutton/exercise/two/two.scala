@@ -4,14 +4,15 @@ import breeze.linalg.DenseVector
 import com.robertjneal.rl.TabularAgent
 import com.robertjneal.rl._
 import com.robertjneal.rl.testbed
-import com.robertjneal.rl.Types._
+import com.robertjneal.rl.types._
+import org.apache.commons.math3.distribution._
 import scala.collection.mutable
 import scala.util.Random
 
-def εGreedy(ε: Probability = Probability.unsafe(0))(actionRewards: mutable.Map[Action, Reward]): Action = {
+def εGreedy(ε: Probability)(actionRewards: mutable.Map[Action, Reward]): Action = {
   if (ε > Probability.Never && ε.sample()) {
     val array = actionRewards.toArray
-    val (action, _): (Action, Reward) = array(Random.nextInt(actionRewards.size))
+    val (action, _): (Action, Reward) = array(Random.nextInt(array.size))
     action
   } else {
     val max = actionRewards.foldLeft(Vector.empty[(Action, Reward)])((maxima, current) => {
@@ -80,5 +81,61 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     testbed.generatePlot(meanRewards.toMap, s"2.2 ${meanRewards.head._1}", "mean reward")
     testbed.generatePlot(optimalActs.toMap, s"2.2 ${optimalActs.head._1}", "% optimal acts")
   }
+}
 
+def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
+  val εs = Vector(
+    Probability.unsafe(0.1),
+    Probability.unsafe(0.01),
+    Probability.unsafe(0.0)
+  )
+
+  class NonstationaryReward extends RandomReward {
+    val random = new NormalDistribution(0, 1)
+    var nonstationaryTrueReward: Reward = Reward(random.sample)
+
+    private def updateTrueReward = {
+      nonstationaryTrueReward = Reward(new NormalDistribution(0D, 0.01).sample)
+    }
+
+    override def sample: Reward = {
+      val sampler = new NormalDistribution(nonstationaryTrueReward.toDouble, 1)
+      Reward(sampler.sample)
+    }
+
+    override def trueReward: Reward = nonstationaryTrueReward
+  }
+
+  val actions: Vector[Action] = Range(0, 9).map(n => Action(n.toString)).toVector
+  val actionValues: Action => RandomReward = actions.map(a =>
+    (a, (NonstationaryReward()))
+  ).toMap
+
+  val environment = testbed.tenArmEnvironment.copy(actionRewards = actionValues)
+  
+  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = εs.map(ε => { 
+    val agent = TabularAgent(
+      environment,
+      OneState,
+      εGreedy(ε),
+      sampleAverage(None),
+      true
+    )
+    val result = testbed.run(
+      agent,
+      runs = 2000,
+      steps = 1000
+    )
+    ((ε.toString, result.meanRewards), (ε.toString, result.optimalActs))
+  })
+
+  if (debug)
+    for (i <- 0 until 90)
+      println(indexedResults.head._1._2(i))
+
+  if (generatePlots) {
+    val (meanRewards, optimalActs) = indexedResults.unzip
+    testbed.generatePlot(meanRewards.toMap, s"2.5 ${meanRewards.head._1}", "mean reward")
+    testbed.generatePlot(optimalActs.toMap, s"2.5 ${optimalActs.head._1}", "% optimal acts")
+  }
 }
