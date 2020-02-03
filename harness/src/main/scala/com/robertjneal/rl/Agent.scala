@@ -1,6 +1,6 @@
 package com.robertjneal.rl
 
-import com.robertjneal.rl.Types._
+import com.robertjneal.rl.types._
 import scala.collection.mutable
 
 case class TabularAgent(

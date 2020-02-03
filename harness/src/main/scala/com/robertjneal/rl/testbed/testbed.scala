@@ -2,7 +2,7 @@ package com.robertjneal.rl.testbed
 
 import breeze.linalg.{Vector => BreezeVector, _}
 import com.robertjneal.rl._
-import com.robertjneal.rl.Types._
+import com.robertjneal.rl.types._
 import org.apache.commons.math3.distribution._
 
 case class MeanOptimal(meanRewards: DenseVector[Double], optimalActs: DenseVector[Double])
@@ -11,7 +11,7 @@ lazy val tenArmEnvironment: BanditEnvironment = {
   val random = new NormalDistribution(0, 1)
   val actions: Vector[Action] = Range(0, 9).map(n => Action(n.toString)).toVector
   val actionValues: Action => RandomReward = actions.map(a =>
-    (a, RandomReward(new NormalDistribution(random.sample, 1)))
+    (a, StationaryDistribution(new NormalDistribution(random.sample, 1)))
   ).toMap
   val environment = BanditEnvironment(
     actions,

@@ -1,7 +1,7 @@
 package com.robertjneal.rl.testbed
 
 import com.robertjneal.rl._
-import com.robertjneal.rl.Types._
+import com.robertjneal.rl.types._
 import org.apache.commons.math3.distribution._
 import org.junit.Test
 import org.junit.Assert._
@@ -10,9 +10,9 @@ import scala.collection.mutable
 class testbedTest {
   @Test def bestActionIsOptimal(): Unit = {
     val threeActions = Array(
-      (Action("A"), RandomReward(new NormalDistribution(5, 0.1))),
-      (Action("B"), RandomReward(new NormalDistribution(0, 0.1))),
-      (Action("C"), RandomReward(new NormalDistribution(-5, 0.1)))
+      (Action("A"), StationaryDistribution(new NormalDistribution(5, 0.1))),
+      (Action("B"), StationaryDistribution(new NormalDistribution(0, 0.1))),
+      (Action("C"), StationaryDistribution(new NormalDistribution(-5, 0.1)))
     )
     val environment = BanditEnvironment(
       threeActions.map(_._1).toVector,
