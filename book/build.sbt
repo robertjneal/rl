@@ -2,7 +2,7 @@ val dottyVersion = "0.20.0-RC1"
 
 lazy val harness = RootProject(file("../harness"))
 
-lazy val root = project
+lazy val book = project
   .in(file("."))
   .settings(
     name := "dotty-simple",

@@ -94,6 +94,7 @@ object Types {
 
       def sample(r: Random = Random): Boolean = r.nextDouble <= p1
       def toDouble: Double = p1
+      override def toString: String = p1.toString
     }
   }
 }
