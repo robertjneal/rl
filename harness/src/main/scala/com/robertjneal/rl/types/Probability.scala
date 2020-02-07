@@ -32,7 +32,7 @@ object Probability {
 
     import scala.util.Random
 
-    def sample(r: Random = Random): Boolean = r.nextDouble <= p1
+    def wonLottery(r: Random = Random): Boolean = r.nextDouble <= p1
     def toDouble: Double = p1
     override def toString: String = p1.toString
   }

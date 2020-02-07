@@ -10,7 +10,7 @@ import scala.collection.mutable
 import scala.util.Random
 
 def εGreedy(ε: Probability)(actionRewards: mutable.Map[Action, Reward]): Action = {
-  if (ε > Probability.Never && ε.sample()) {
+  if (ε > Probability.Never && ε.wonLottery()) {
     val array = actionRewards.toArray
     val (action, _): (Action, Reward) = array(Random.nextInt(array.size))
     action
@@ -43,7 +43,7 @@ def sampleAverage(recencyWeight: Option[Double])(actionRewards: mutable.Map[Acti
       actionRewards(currentAction).toDouble,
       currentStep.toInt,
       currentReward.toDouble,
-      recencyWeight.getOrElse(1 / currentStep.toInt.toDouble)
+      recencyWeight.getOrElse(1)
     )
   )
 }

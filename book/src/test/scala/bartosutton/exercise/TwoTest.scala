@@ -6,6 +6,7 @@ import org.junit.Test
 import scala.collection.mutable
 
 class TwoTest {
+    val acceptableMargin = 0.01
     val bestRewardValue = 1.9
     val bestAction = Action(s"A$bestRewardValue")
     val best = (bestAction, Reward(bestRewardValue))
@@ -37,7 +38,7 @@ class TwoTest {
 
         val bestChosen = actionsSelected.count(_ == bestAction) / iterations.toDouble
         val expected = 0.9 + (.1/3.0)
-        assertEquals(expected, bestChosen, 0.01)
+        assertEquals(expected, bestChosen, acceptableMargin)
     }
 
     /*
@@ -58,9 +59,26 @@ class TwoTest {
         val best3Chosen = actionsSelected.count(_ == bestAction3) / iterations.toDouble
 
         val expected = 1D/3D
-        assertEquals(expected, bestChosen, 0.01)
-        assertEquals(expected, best2Chosen, 0.01)
-        assertEquals(expected, best3Chosen, 0.01)
+        assertEquals(expected, bestChosen, acceptableMargin)
+        assertEquals(expected, best2Chosen, acceptableMargin)
+        assertEquals(expected, best3Chosen, acceptableMargin)
     }
 
+    /*
+    Unweighted sample average should be the mean
+    */
+    @Test
+    def unweightedSampleAverageTest() = {
+        val size = 101
+        val action = Action("A")
+        val numbersToAverage = Vector.fill(size)(scala.util.Random.nextInt(1000))
+        val actionRewards = mutable.Map((action, Reward(0)))
+        val expected = numbersToAverage.sum / size.toDouble
+
+        Range(0, size).foreach { n =>
+            sampleAverage(None)(actionRewards, action, Reward(numbersToAverage(n).toDouble), Step(n + 1))
+        }
+
+        assertEquals(expected, actionRewards(action).toDouble, acceptableMargin)
+    }
 }
