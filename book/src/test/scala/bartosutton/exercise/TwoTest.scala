@@ -85,7 +85,7 @@ class TwoTest {
     }
 
     /*
-    Exponential recency weighted average should equaly the last number
+    Exponential recency weighted average should equal the last number
     "(If 1 − α = 0, then all the weight goes on the very last reward, Rn, because of the convention that 0^0 = 1.)"
     */
     @Test
