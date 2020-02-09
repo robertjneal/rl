@@ -34,7 +34,7 @@ def εGreedy(ε: Probability)(actionRewards: mutable.Map[Action, Reward]): Actio
 // and in all cases it's formula 2.5
 private def updateAverage(Q: Double, n: Int, R: Double, recencyWeight: Double): Double = {
   val error = R - Q
-  Q + (recencyWeight * error / n.toDouble)
+  Q + (recencyWeight * error)
 }
 
 def sampleAverage(recencyWeight: Option[Double])(actionRewards: mutable.Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step): Unit = {
@@ -43,7 +43,7 @@ def sampleAverage(recencyWeight: Option[Double])(actionRewards: mutable.Map[Acti
       actionRewards(currentAction).toDouble,
       currentStep.toInt,
       currentReward.toDouble,
-      recencyWeight.getOrElse(1)
+      recencyWeight.getOrElse(1D / currentStep.toInt)
     )
   )
 }
