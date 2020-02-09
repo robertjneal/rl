@@ -6,6 +6,8 @@ import org.junit.Test
 import scala.collection.mutable
 
 class TwoTest {
+    import scala.language.implicitConversions
+
     val acceptableMargin = 0.01
     val bestRewardValue = 1.9
     val bestAction = Action(s"A$bestRewardValue")
@@ -77,6 +79,47 @@ class TwoTest {
 
         Range(0, size).foreach { n =>
             sampleAverage(None)(actionRewards, action, Reward(numbersToAverage(n).toDouble), Step(n + 1))
+        }
+
+        assertEquals(expected, actionRewards(action).toDouble, acceptableMargin)
+    }
+
+    /*
+    Exponential recency weighted average should equal the last number
+    "(If 1 − α = 0, then all the weight goes on the very last reward, Rn, because of the convention that 0^0 = 1.)"
+    */
+    @Test
+    def exponentialRecencyWeightedAverageTest() = {
+        val size = 101
+        val action = Action("A")
+        val orderedRewards = Vector.fill(size)(scala.util.Random.nextInt(1000))
+        val actionRewards = mutable.Map((action, Reward(0)))
+        val expected = orderedRewards.last.toDouble
+
+        Range(0, size).foreach { n =>
+            sampleAverage(Some(1))(actionRewards, action, Reward(orderedRewards(n).toDouble), Step(n + 1))
+        }
+
+        assertEquals(expected, actionRewards(action).toDouble, acceptableMargin)
+    }
+
+    /*
+    Recency weight average should equal (1-α)^n*Q1+Σ[i=1->n]α(1-α)^(n-i)*Ri
+    */
+    @Test
+    def recencyWeightedAverageTest() = {
+        val α = 0.7
+        val size = 101
+        val action = Action("A")
+        val orderedRewards = Vector.fill(size)(scala.util.Random.nextInt(1000))
+        val actionRewards = mutable.Map((action, Reward(0)))
+        val expected = Math.pow(1-α, size) * 0 +
+            (for (i <- 1 to size) yield {
+                α * Math.pow((1 - α), size - i) * orderedRewards(i - 1)
+            }).sum
+
+        Range(0, size).foreach { n =>
+            sampleAverage(Some(α))(actionRewards, action, Reward(orderedRewards(n).toDouble), Step(n + 1))
         }
 
         assertEquals(expected, actionRewards(action).toDouble, acceptableMargin)
