@@ -73,7 +73,6 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   })
 
   if (debug) {
-    println(environment.maxReward)
     for (i <- 0 until 100) {
       println(indexedResults.head._1._2(i))
       println(indexedResults.head._2._2(i))
