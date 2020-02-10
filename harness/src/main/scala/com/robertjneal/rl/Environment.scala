@@ -27,14 +27,17 @@ case class BanditEnvironment(
     OptimalAct(optimalActs.contains(a))
   }
 
-  private val optimalActs: Vector[Action] = {
-    val actionTrueRewards: Vector[(Reward, Action)] = possibleActions.map(a => (actionRewards(a).trueReward, a))
-    val maxReward: Reward = Reward(actionTrueRewards.map {
-      case (r, a) => r.toDouble
-    }.max)
+  private val actionTrueRewards: Vector[(Reward, Action)] = possibleActions.map(a => (actionRewards(a).trueReward, a))
 
+  private lazy val maxReward: Reward = {
+    Reward(actionTrueRewards.map {
+      case (r, _) => r.toDouble
+    }.max)
+  }
+
+  private lazy val optimalActs: Vector[Action] = {
     actionTrueRewards
-      .filter { case (r, a) => r == maxReward }
-      .map { case (r, a) => a }
+      .filter { case (r, _) => r == maxReward }
+      .map { case (_, a) => a }
   }
 }
