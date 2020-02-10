@@ -52,7 +52,7 @@ def generatePlot(dvs: Map[String, DenseVector[Double]], fileName: String, ylabel
       name = name)
     p.xlabel = xlabel
     p.ylabel = ylabel
-    p.ylim(0D, 1D)
+    p.ylim(0D, Math.max(1D, dv.max))
   }
   f.saveas(s"$fileName$ylabel.png")
 

@@ -52,7 +52,7 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   val εs = Vector(
     Probability.unsafe(0.1),
     Probability.unsafe(0.01),
-    Probability.unsafe(0.0)
+    Probability.Never
   )
   val environment = testbed.tenArmEnvironment
   
@@ -72,9 +72,14 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     ((ε.toString, result.meanRewards), (ε.toString, result.optimalActs))
   })
 
-  if (debug)
-    for (i <- 0 until 90)
+  if (debug) {
+    println(environment.maxReward)
+    for (i <- 0 until 100) {
       println(indexedResults.head._1._2(i))
+      println(indexedResults.head._2._2(i))
+      println("-")
+    }
+  }
 
   if (generatePlots) {
     val (meanRewards, optimalActs) = indexedResults.unzip

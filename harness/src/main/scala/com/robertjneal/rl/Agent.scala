@@ -12,7 +12,10 @@ case class TabularAgent(
   ) {  
   private var mutableHistory: Array[(OptimalAct, Reward)] = Array.empty
   private val table: Map[State, mutable.Map[Action, Reward]] = e.possibleStateActions.map { 
-    case (s, as) => s -> mutable.Map(as.map(a => a -> Reward(0)): _*) 
+    case (s, as) => s -> mutable.Map(as.map(_ -> Reward(0)): _*) 
+  }
+  private val actionSteps: Map[State, mutable.Map[Action, Step]] = e.possibleStateActions.map {
+    case (s, as) => s -> mutable.Map(as.map(_ -> Step(0)): _*)
   }
 
   private var step: Step = Step(0)
@@ -20,12 +23,14 @@ case class TabularAgent(
   def act: Unit = {
     step = step.increment
 
-    val act = actionSelector(table(s))
-    val (reward, _) = e.act(s, act)
-    updater(table(s), act, reward, step)
+    val action = actionSelector(table(s))
+    actionSteps(s)(action) = actionSteps(s)(action).increment
+
+    val (reward, _) = e.act(s, action)
+    updater(table(s), action, reward, actionSteps(s)(action))
 
     if (recordHistory) {
-      val appendage = (e.isOptimal(s, act), reward)
+      val appendage = (e.isOptimal(s, action), reward)
       mutableHistory = mutableHistory :+ appendage
     }
   }
