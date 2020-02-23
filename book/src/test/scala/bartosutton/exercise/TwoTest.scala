@@ -67,7 +67,7 @@ class TwoTest {
     }
 
     /*
-    Unweighted sample average should be the mean
+    Sample average should be the mean
     */
     @Test
     def unweightedSampleAverageTest() = {
@@ -78,7 +78,7 @@ class TwoTest {
         val expected = numbersToAverage.sum / size.toDouble
 
         Range(0, size).foreach { n =>
-            sampleAverage(None)(actionRewards, action, Reward(numbersToAverage(n).toDouble), Step(n + 1))
+            average(sampleAverage)(actionRewards, action, Reward(numbersToAverage(n).toDouble), Step(n + 1))
         }
 
         assertEquals(expected, actionRewards(action).toDouble, acceptableMargin)
@@ -97,7 +97,7 @@ class TwoTest {
         val expected = orderedRewards.last.toDouble
 
         Range(0, size).foreach { n =>
-            sampleAverage(Some(1))(actionRewards, action, Reward(orderedRewards(n).toDouble), Step(n + 1))
+            average(exponentialRecencyWeightedAverage(1))(actionRewards, action, Reward(orderedRewards(n).toDouble), Step(n + 1))
         }
 
         assertEquals(expected, actionRewards(action).toDouble, acceptableMargin)
@@ -119,7 +119,7 @@ class TwoTest {
             }).sum
 
         Range(0, size).foreach { n =>
-            sampleAverage(Some(α))(actionRewards, action, Reward(orderedRewards(n).toDouble), Step(n + 1))
+            average(exponentialRecencyWeightedAverage(α))(actionRewards, action, Reward(orderedRewards(n).toDouble), Step(n + 1))
         }
 
         assertEquals(expected, actionRewards(action).toDouble, acceptableMargin)
