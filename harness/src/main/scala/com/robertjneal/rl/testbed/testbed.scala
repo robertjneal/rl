@@ -21,18 +21,34 @@ lazy val tenArmEnvironment: BanditEnvironment = {
 }
 
 def run(agent: TabularAgent, runs: Int, steps: Int): MeanOptimal = {
-  val meansOptimals: MeanOptimal = (1 to runs)
-    .foldLeft(MeanOptimal(DenseVector.zeros[Double](steps), DenseVector.zeros[Double](steps)))((acc: MeanOptimal, elem: Int) => {
-        val a = agent.copy()
+  import scala.collection.parallel.ParSeq
+  import scala.collection.parallel.CollectionConverters._
+  
+  val meansOptimalsList: ParSeq[MeanOptimal] = (1 to runs).par.map { elem =>
+    val a = agent.copy()
 
-        (1 to steps).foreach(_ => a.act)
+    (1 to steps).foreach(_ => a.act)
 
-        MeanOptimal(
-          acc.meanRewards + DenseVector(a.history.map((_, reward) => reward.toDouble).toArray),
-          acc.optimalActs + DenseVector(a.history.map((isOptimal, _) => isOptimal.toDouble).toArray)
-        )
-      })
+    MeanOptimal(
+      DenseVector(a.history.map((_, reward) => reward.toDouble).toArray),
+      DenseVector(a.history.map((isOptimal, _) => isOptimal.toDouble).toArray)
+    )
+  }
+
+  for (i <- 0 to 10) println("first ten: " + meansOptimalsList.head.meanRewards(i))
+
+  val meansOptimals: MeanOptimal = meansOptimalsList.reduce((mo1: MeanOptimal, mo2: MeanOptimal) => {
+    val mo = MeanOptimal(mo1.meanRewards + mo2.meanRewards, mo1.optimalActs + mo2.optimalActs)
+    var i = 0
+    mo.meanRewards.foreach { x =>
+      if (x.isNaN) println ("NaN: " + mo1.meanRewards(i) + ", " + mo2.meanRewards(i))
+      i = i + 1
+    }
+    mo
+  })
     
+  for (i <- 0 to 10) println("combined: " + meansOptimals.meanRewards(i))
+
   MeanOptimal(
     meansOptimals.meanRewards / runs.toDouble,
     meansOptimals.optimalActs / runs.toDouble
