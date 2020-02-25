@@ -10,9 +10,9 @@ import scala.collection.mutable
 class testbedTest {
   @Test def bestActionIsOptimal(): Unit = {
     val threeActions = Array(
-      (Action("A"), StationaryDistribution(new NormalDistribution(5, 0.1))),
-      (Action("B"), StationaryDistribution(new NormalDistribution(0, 0.1))),
-      (Action("C"), StationaryDistribution(new NormalDistribution(-5, 0.1)))
+      (Action("A"), StationaryDistribution(new NormalDistribution(ThreadLocalRandomGenerator(), 5, 0.1))),
+      (Action("B"), StationaryDistribution(new NormalDistribution(ThreadLocalRandomGenerator(), 0, 0.1))),
+      (Action("C"), StationaryDistribution(new NormalDistribution(ThreadLocalRandomGenerator(), -5, 0.1)))
     )
     val environment = BanditEnvironment(
       threeActions.map(_._1).toVector,
@@ -30,9 +30,6 @@ class testbedTest {
     val agent = TabularAgent(environment, OneState, pickBest, sampleAverage, true)
 
     val result: MeanOptimal = run(agent, 2000, 1000)
-
-    for (i <- 1 to 10) println("sum: " + result.meanRewards(i))
-    println("length: " + result.meanRewards.length)
 
     // reward is the true reward of the best action, mas o menos
     assertEquals(threeActions.head._2.trueReward.toDouble, result.meanRewards.sum / result.meanRewards.length, 0.01)
