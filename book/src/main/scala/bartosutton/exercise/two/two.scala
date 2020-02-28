@@ -32,18 +32,22 @@ def εGreedy(ε: Probability)(actionRewards: mutable.Map[Action, Reward]): Actio
 
 // When recencyWeight is 1/n, this is equivalent to formula 2.3
 // and in all cases it's formula 2.5
-private def updateAverage(Q: Double, n: Int, R: Double, recencyWeight: Double): Double = {
+private def updateAverage(Q: Double, n: Step, R: Double, averageMethod: (Step) => Double): Double = {
+  val recencyWeight = averageMethod(n)
   val error = R - Q
   Q + (recencyWeight * error)
 }
 
-def sampleAverage(recencyWeight: Option[Double])(actionRewards: mutable.Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step): Unit = {
+def sampleAverage(step: Step) = 1D / step.toInt
+def exponentialRecencyWeightedAverage(weight: Double)(step: Step) = weight
+
+def average(averageMethod: (Step) => Double)(actionRewards: mutable.Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step): Unit = {
   actionRewards(currentAction) = Reward(
     updateAverage(
       actionRewards(currentAction).toDouble,
-      currentStep.toInt,
+      currentStep,
       currentReward.toDouble,
-      recencyWeight.getOrElse(1D / currentStep.toInt)
+      averageMethod
     )
   )
 }
@@ -61,7 +65,7 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
       environment,
       OneState,
       εGreedy(ε),
-      sampleAverage(None),
+      average(sampleAverage),
       true
     )
     val result = testbed.run(
@@ -88,22 +92,26 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
 }
 
 def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
-  val εs = Vector(
-    Probability.unsafe(0.1),
-    Probability.unsafe(0.01),
-    Probability.unsafe(0.0)
+  val ε = Probability.unsafe(0.1)
+
+  val averageMethods: Vector[(String, (Step) => Double)] = Vector(
+    ("Sample Average", sampleAverage),
+    ("Exponential Recency", exponentialRecencyWeightedAverage(0.1))
   )
 
   class NonstationaryReward extends RandomReward {
     val random = new NormalDistribution(0, 1)
     var nonstationaryTrueReward: Reward = Reward(random.sample)
+    val randomStepper = new NormalDistribution(0D, 0.01)
 
-    private def updateTrueReward = {
-      nonstationaryTrueReward = Reward(new NormalDistribution(0D, 0.01).sample)
+    private def updateTrueReward: Reward = {
+      nonstationaryTrueReward = nonstationaryTrueReward + Reward(randomStepper.sample)
+      nonstationaryTrueReward
     }
 
     override def sample: Reward = {
-      val sampler = new NormalDistribution(nonstationaryTrueReward.toDouble, 1)
+      val newReward = updateTrueReward
+      val sampler = new NormalDistribution(newReward.toDouble, 1)
       Reward(sampler.sample)
     }
 
@@ -117,21 +125,23 @@ def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Bool
 
   val environment = testbed.tenArmEnvironment.copy(actionRewards = actionValues)
   
-  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = εs.map(ε => { 
-    val agent = TabularAgent(
-      environment,
-      OneState,
-      εGreedy(ε),
-      sampleAverage(None),
-      true
-    )
-    val result = testbed.run(
-      agent,
-      runs = 2000,
-      steps = 1000
-    )
-    ((ε.toString, result.meanRewards), (ε.toString, result.optimalActs))
-  })
+  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = 
+    averageMethods.map((name, am) => { 
+      val agent = TabularAgent(
+        environment,
+        OneState,
+        εGreedy(ε),
+        average(am),
+        true
+      )
+      val result = testbed.run(
+        agent,
+        runs = 2000,
+        steps = 10000
+      )
+      ((name, result.meanRewards), (name, result.optimalActs))
+    }
+  )
 
   if (debug)
     for (i <- 0 until 90)
@@ -139,7 +149,7 @@ def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Bool
 
   if (generatePlots) {
     val (meanRewards, optimalActs) = indexedResults.unzip
-    testbed.generatePlot(meanRewards.toMap, s"2.5 ${meanRewards.head._1}", "mean reward")
-    testbed.generatePlot(optimalActs.toMap, s"2.5 ${optimalActs.head._1}", "% optimal acts")
+    testbed.generatePlot(meanRewards.toMap, s"2.5", "mean reward")
+    testbed.generatePlot(optimalActs.toMap, s"2.5", "% optimal acts")
   }
 }
