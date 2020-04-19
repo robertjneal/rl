@@ -1,22 +1,36 @@
-package bartosutton.exercise.two
+package com.robertjneal.rl.actionselector
 
 import com.robertjneal.rl.types._
 import org.junit.Assert._
 import org.junit.Test
-import scala.collection.mutable
 
 class TwoTest {
     import scala.language.implicitConversions
 
-    val acceptableMargin = 0.01
-    val bestRewardValue = 1.9
-    val bestAction = Action(s"A$bestRewardValue")
-    val best = (bestAction, Reward(bestRewardValue))
-    val actionRewards: mutable.Map[Action, Reward] = mutable.Map(
+    private val acceptableMargin = 0.01
+    private val bestRewardValue = 1.9
+    private val bestAction = Action(s"A$bestRewardValue")
+    private val best = (bestAction, Reward(bestRewardValue))
+    private val actionRewards: Map[Action, Reward] = Map(
         (Action("A=1.4"), Reward(1.4)),
         best,
         (Action("C=1.1"), Reward(1.1)),
     )
+
+    private def updatedActionRewards(averageMethod: (Step) => Double, actionRewardsToUpdate: Map[Action, Reward], numbers: List[Int], action: Action, originalSize: Int): Map[Action, Reward] = {
+      if (numbers.length == 0) actionRewardsToUpdate
+      else {
+        val n = originalSize - numbers.length
+        val hd::tl = numbers
+        updatedActionRewards(
+          averageMethod,
+          average(averageMethod)(actionRewardsToUpdate, action, Reward(hd.toDouble), Step(n + 1)),
+          tl,
+          action,
+          originalSize
+        )
+      }
+    }
 
     /*
     When always greedy, the best action should always be taken.
@@ -50,7 +64,7 @@ class TwoTest {
     def εGreedyTieTest() = {
         val bestAction2 = Action(s"A2$bestRewardValue")
         val bestAction3 = Action(s"A3$bestRewardValue")
-        val threeGreedyActions = actionRewards.addOne((bestAction2 -> Reward(bestRewardValue))).addOne((bestAction3 -> Reward(bestRewardValue)))
+        val threeGreedyActions = actionRewards + (bestAction2 -> Reward(bestRewardValue)) + (bestAction3 -> Reward(bestRewardValue))
         
         val iterations = 10000
         val actionsSelected = for (i <- 0 until iterations) 
@@ -73,15 +87,13 @@ class TwoTest {
     def unweightedSampleAverageTest() = {
         val size = 101
         val action = Action("A")
-        val numbersToAverage = Vector.fill(size)(scala.util.Random.nextInt(1000))
-        val actionRewards = mutable.Map((action, Reward(0)))
+        val numbersToAverage = List.fill(size)(scala.util.Random.nextInt(1000))
+        val actionRewards = Map((action, Reward(0)))
         val expected = numbersToAverage.sum / size.toDouble
 
-        Range(0, size).foreach { n =>
-            average(sampleAverage)(actionRewards, action, Reward(numbersToAverage(n).toDouble), Step(n + 1))
-        }
+        val finalActionRewards = updatedActionRewards(sampleAverage, actionRewards, numbersToAverage, action, numbersToAverage.length)
 
-        assertEquals(expected, actionRewards(action).toDouble, acceptableMargin)
+        assertEquals(expected, finalActionRewards(action).toDouble, acceptableMargin)
     }
 
     /*
@@ -92,15 +104,13 @@ class TwoTest {
     def exponentialRecencyWeightedAverageTest() = {
         val size = 101
         val action = Action("A")
-        val orderedRewards = Vector.fill(size)(scala.util.Random.nextInt(1000))
-        val actionRewards = mutable.Map((action, Reward(0)))
+        val orderedRewards = List.fill(size)(scala.util.Random.nextInt(1000))
+        val actionRewards = Map((action, Reward(0)))
         val expected = orderedRewards.last.toDouble
 
-        Range(0, size).foreach { n =>
-            average(exponentialRecencyWeightedAverage(1))(actionRewards, action, Reward(orderedRewards(n).toDouble), Step(n + 1))
-        }
+        val finalActionRewards = updatedActionRewards(exponentialRecencyWeightedAverage(1), actionRewards, orderedRewards, action, orderedRewards.length)
 
-        assertEquals(expected, actionRewards(action).toDouble, acceptableMargin)
+        assertEquals(expected, finalActionRewards(action).toDouble, acceptableMargin)
     }
 
     /*
@@ -111,17 +121,15 @@ class TwoTest {
         val α = 0.7
         val size = 101
         val action = Action("A")
-        val orderedRewards = Vector.fill(size)(scala.util.Random.nextInt(1000))
-        val actionRewards = mutable.Map((action, Reward(0)))
+        val orderedRewards = List.fill(size)(scala.util.Random.nextInt(1000))
+        val actionRewards = Map((action, Reward(0)))
         val expected = Math.pow(1-α, size) * 0 +
             (for (i <- 1 to size) yield {
                 α * Math.pow((1 - α), size - i) * orderedRewards(i - 1)
             }).sum
 
-        Range(0, size).foreach { n =>
-            average(exponentialRecencyWeightedAverage(α))(actionRewards, action, Reward(orderedRewards(n).toDouble), Step(n + 1))
-        }
+        val finalActionRewards = updatedActionRewards(exponentialRecencyWeightedAverage(α), actionRewards, orderedRewards, action, orderedRewards.length)
 
-        assertEquals(expected, actionRewards(action).toDouble, acceptableMargin)
+        assertEquals(expected, finalActionRewards(action).toDouble, acceptableMargin)
     }
 }

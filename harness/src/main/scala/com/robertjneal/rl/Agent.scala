@@ -17,14 +17,14 @@ case class TabularAgent(
   def act: TabularAgent = {
     val action = actionSelector(table(e.state))
     val updatedActionSteps: Map[State, Map[Action, Step]] = actionSteps.updated(e.state,
-        actionSteps(e.state).updated(
+      actionSteps(e.state).updated(
         action, 
         actionSteps(e.state)(action).increment
       )
     )
 
     val (reward, updatedEnvironment) = e.act(action)
-    val updatedTable: Map[State, Map[Action, Reward]] = Map(e.state -> updater(table(e.state), action, reward, actionSteps(e.state)(action)))
+    val updatedTable: Map[State, Map[Action, Reward]] = Map(e.state -> updater(table(e.state), action, reward, updatedActionSteps(e.state)(action)))
 
     val updatedHistory = if (recordHistory) {
       val appendage = (e.isOptimal(action), reward)
@@ -48,7 +48,7 @@ object TabularAgent {
   def blankSlate(e: Environment, 
   actionSelector: Map[Action, Reward] => Action, 
   updater: (Map[Action, Reward], Action, Reward, Step) => Map[Action, Reward],
-  recordHistory: Boolean = false) = {
+recordHistory: Boolean = false): TabularAgent = {
     val initialActionSteps = e.possibleStateActions.map { 
       case (s, as) => s -> Map(as.map(_ -> Step(0)): _*) 
     }
