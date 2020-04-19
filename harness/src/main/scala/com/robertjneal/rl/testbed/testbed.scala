@@ -61,14 +61,7 @@ def run(agent: TabularAgent, runs: Int, steps: Int): MeanOptimal = {
       else continueActing(actable.act, counter - 1)
     }
 
-    //val agentAtFinalState = (1 to steps).foldLeft(a)((este, current) => {
-    //  este.act
-    //})
-    //(1 to steps).foreach(_ => a.act)
-
     val agentAtFinalState = continueActing(a, steps)
-
-    //println(agentAtFinalState.history.length)
 
     MeanOptimal(
       DenseVector(agentAtFinalState.history.map((_, reward) => reward.toDouble).toArray),
