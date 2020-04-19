@@ -24,8 +24,10 @@ def εGreedy(ε: Probability)(actionRewards: Map[Action, Reward]): Action = {
   }
 }
 
-// When recencyWeight is 1/n, this is equivalent to formula 2.3
-// and in all cases it's formula 2.5
+// When recencyWeight is 1/n, this is equivalent to:
+// Qn + 1/n(Rn - Qn)
+// and in all cases it's:
+// Qn + α(Rn - Qn)
 private def updateAverage(Q: Double, n: Step, R: Double, averageMethod: (Step) => Double): Double = {
   val recencyWeight = averageMethod(n)
   val error = R - Q
