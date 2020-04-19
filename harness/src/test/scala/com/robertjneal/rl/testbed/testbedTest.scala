@@ -5,7 +5,6 @@ import com.robertjneal.rl.types._
 import org.apache.commons.math3.distribution._
 import org.junit.Test
 import org.junit.Assert._
-import scala.collection.mutable
 
 class testbedTest {
   @Test def bestActionIsOptimal(): Unit = {
@@ -18,16 +17,17 @@ class testbedTest {
       threeActions.map(_._1).toVector,
       threeActions.toMap
     )
-    def pickBest(map: mutable.Map[Action, Reward]): Action = {
+    def pickBest(map: Map[Action, Reward]): Action = {
       map.maxBy(_._2.toDouble)._1
     }
-    def sampleAverage(actionRewards: mutable.Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step): Unit = {
+    def sampleAverage(actionRewards: Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step): 
+    Map[Action, Reward] = {
       val error = currentReward - actionRewards(currentAction)
-      actionRewards(currentAction) = Reward(
+      actionRewards.updated(currentAction, Reward(
         actionRewards(currentAction).toDouble + ( error.toDouble / currentStep.toInt.toDouble)
-      )
+      ))
     }
-    val agent = TabularAgent(environment, OneState, pickBest, sampleAverage, true)
+    val agent = TabularAgent.blankSlate(environment, pickBest, sampleAverage, true)
 
     val result: MeanOptimal = run(agent, 2000, 1000)
 

@@ -1,56 +1,13 @@
 package bartosutton.exercise.two
 
 import breeze.linalg.DenseVector
+import com.robertjneal.rl.actionselector._
 import com.robertjneal.rl.TabularAgent
 import com.robertjneal.rl._
 import com.robertjneal.rl.testbed
 import com.robertjneal.rl.types._
 import org.apache.commons.math3.distribution._
 import scala.collection.mutable
-import scala.util.Random
-
-def εGreedy(ε: Probability)(actionRewards: mutable.Map[Action, Reward]): Action = {
-  if (ε > Probability.Never && ε.wonLottery()) {
-    val array = actionRewards.toArray
-    val (action, _): (Action, Reward) = array(Random.nextInt(array.size))
-    action
-  } else {
-    val max = actionRewards.foldLeft(Vector.empty[(Action, Reward)])((maxima, current) => {
-      val (_, currentReward) = current
-      maxima.headOption match {
-        case Some((_, maxReward)) =>
-          if (maxReward > currentReward) maxima
-          else if (maxReward == currentReward) maxima :+ current
-          else Vector(current) 
-        case None => Vector(current)
-      }
-    })
-    val (action, _): (Action, Reward) = max(Random.nextInt(max.length))
-    action
-  }
-}
-
-// When recencyWeight is 1/n, this is equivalent to formula 2.3
-// and in all cases it's formula 2.5
-private def updateAverage(Q: Double, n: Step, R: Double, averageMethod: (Step) => Double): Double = {
-  val recencyWeight = averageMethod(n)
-  val error = R - Q
-  Q + (recencyWeight * error)
-}
-
-def sampleAverage(step: Step) = 1D / step.toInt
-def exponentialRecencyWeightedAverage(weight: Double)(step: Step) = weight
-
-def average(averageMethod: (Step) => Double)(actionRewards: mutable.Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step): Unit = {
-  actionRewards(currentAction) = Reward(
-    updateAverage(
-      actionRewards(currentAction).toDouble,
-      currentStep,
-      currentReward.toDouble,
-      averageMethod
-    )
-  )
-}
 
 def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
   val εs = Vector(
@@ -61,9 +18,8 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   val environment = testbed.tenArmEnvironment
   
   val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = εs.map(ε => { 
-    val agent = TabularAgent(
+    val agent = TabularAgent.blankSlate(
       environment,
-      OneState,
       εGreedy(ε),
       average(sampleAverage),
       true
@@ -99,37 +55,17 @@ def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Bool
     ("Exponential Recency", exponentialRecencyWeightedAverage(0.1))
   )
 
-  class NonstationaryReward extends RandomReward {
-    val random = new NormalDistribution(0, 1)
-    var nonstationaryTrueReward: Reward = Reward(random.sample)
-    val randomStepper = new NormalDistribution(0D, 0.01)
-
-    private def updateTrueReward: Reward = {
-      nonstationaryTrueReward = nonstationaryTrueReward + Reward(randomStepper.sample)
-      nonstationaryTrueReward
-    }
-
-    override def sample: Reward = {
-      val newReward = updateTrueReward
-      val sampler = new NormalDistribution(newReward.toDouble, 1)
-      Reward(sampler.sample)
-    }
-
-    override def trueReward: Reward = nonstationaryTrueReward
-  }
-
   val actions: Vector[Action] = Range(0, 9).map(n => Action(n.toString)).toVector
-  val actionValues: Action => RandomReward = actions.map(a =>
-    (a, (NonstationaryReward()))
+  val actionValues: Map[Action, RandomReward] = actions.map(a =>
+    (a, (NonstationaryReward.randomStart))
   ).toMap
 
   val environment = testbed.tenArmEnvironment.copy(actionRewards = actionValues)
   
   val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = 
     averageMethods.map((name, am) => { 
-      val agent = TabularAgent(
+      val agent = TabularAgent.blankSlate(
         environment,
-        OneState,
         εGreedy(ε),
         average(am),
         true
