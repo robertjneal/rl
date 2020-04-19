@@ -1,39 +1,69 @@
 package com.robertjneal.rl
 
 import com.robertjneal.rl.types._
-import scala.collection.mutable
 
 case class TabularAgent(
   e: Environment, 
-  var s: State, 
-  actionSelector: mutable.Map[Action, Reward] => Action, 
-  updater: (mutable.Map[Action, Reward], Action, Reward, Step) => Unit,
-  recordHistory: Boolean = false
+  actionSelector: Map[Action, Reward] => Action, 
+  updater: (Map[Action, Reward], Action, Reward, Step) => Map[Action, Reward],
+  step: Step,
+  actionSteps: Map[State, Map[Action, Step]],
+  table: Map[State, Map[Action, Reward]],
+  recordHistory: Boolean = false,
+  history: Array[(OptimalAct, Reward)] = Array.empty
   ) {  
-  private var mutableHistory: Array[(OptimalAct, Reward)] = Array.empty
-  private val table: Map[State, mutable.Map[Action, Reward]] = e.possibleStateActions.map { 
-    case (s, as) => s -> mutable.Map(as.map(_ -> Reward(0)): _*) 
+  private val mutableHistory: Array[(OptimalAct, Reward)] = Array.empty
+
+  def act: TabularAgent = {
+    val action = actionSelector(table(e.state))
+    val updatedActionSteps: Map[State, Map[Action, Step]] = actionSteps.updated(e.state,
+        actionSteps(e.state).updated(
+        action, 
+        actionSteps(e.state)(action).increment
+      )
+    )
+
+    val (reward, updatedEnvironment) = e.act(action)
+    val updatedTable: Map[State, Map[Action, Reward]] = Map(e.state -> updater(table(e.state), action, reward, actionSteps(e.state)(action)))
+
+    val updatedHistory = if (recordHistory) {
+      val appendage = (e.isOptimal(action), reward)
+      history :+ appendage
+    } else history
+
+    TabularAgent(
+      updatedEnvironment,
+      actionSelector,
+      updater,
+      step.increment,
+      updatedActionSteps,
+      updatedTable,
+      recordHistory,
+      updatedHistory
+    )
   }
-  private val actionSteps: Map[State, mutable.Map[Action, Step]] = e.possibleStateActions.map {
-    case (s, as) => s -> mutable.Map(as.map(_ -> Step(0)): _*)
-  }
+}
 
-  private var step: Step = Step(0)
-
-  def act: Unit = {
-    step = step.increment
-
-    val action = actionSelector(table(s))
-    actionSteps(s)(action) = actionSteps(s)(action).increment
-
-    val (reward, _) = e.act(s, action)
-    updater(table(s), action, reward, actionSteps(s)(action))
-
-    if (recordHistory) {
-      val appendage = (e.isOptimal(s, action), reward)
-      mutableHistory = mutableHistory :+ appendage
+object TabularAgent {
+  def blankSlate(e: Environment, 
+  actionSelector: Map[Action, Reward] => Action, 
+  updater: (Map[Action, Reward], Action, Reward, Step) => Map[Action, Reward],
+  recordHistory: Boolean = false) = {
+    val initialActionSteps = e.possibleStateActions.map { 
+      case (s, as) => s -> Map(as.map(_ -> Step(0)): _*) 
     }
-  }
+    val initialTable = e.possibleStateActions.map { 
+      case (s, as) => s -> Map(as.map(_ -> Reward(0)): _*) 
+    }
 
-  def history: Array[(OptimalAct, Reward)] = mutableHistory
+    TabularAgent(
+      e,
+      actionSelector,
+      updater,
+      Step(0),
+      initialActionSteps,
+      initialTable,
+      recordHistory
+    )
+  }
 }

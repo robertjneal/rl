@@ -39,7 +39,7 @@ class ThreadLocalRandomGenerator extends RandomGenerator {
 lazy val tenArmEnvironment: BanditEnvironment = {
   val random = new NormalDistribution(0, 1)
   val actions: Vector[Action] = Range(0, 9).map(n => Action(n.toString)).toVector
-  val actionValues: Action => RandomReward = actions.map(a =>
+  val actionValues: Map[Action, RandomReward] = actions.map(a =>
     (a, StationaryDistribution(new NormalDistribution(ThreadLocalRandomGenerator(), random.sample, 1)))
   ).toMap
   val environment = BanditEnvironment(
@@ -56,11 +56,23 @@ def run(agent: TabularAgent, runs: Int, steps: Int): MeanOptimal = {
   val meansOptimalsList: ParSeq[MeanOptimal] = (1 to runs).par.map { elem =>
     val a = agent.copy()
 
-    (1 to steps).foreach(_ => a.act)
+    def continueActing(actable: TabularAgent, counter: Int): TabularAgent = {
+      if (counter <= 0) actable
+      else continueActing(actable.act, counter - 1)
+    }
+
+    //val agentAtFinalState = (1 to steps).foldLeft(a)((este, current) => {
+    //  este.act
+    //})
+    //(1 to steps).foreach(_ => a.act)
+
+    val agentAtFinalState = continueActing(a, steps)
+
+    //println(agentAtFinalState.history.length)
 
     MeanOptimal(
-      DenseVector(a.history.map((_, reward) => reward.toDouble).toArray),
-      DenseVector(a.history.map((isOptimal, _) => isOptimal.toDouble).toArray)
+      DenseVector(agentAtFinalState.history.map((_, reward) => reward.toDouble).toArray),
+      DenseVector(agentAtFinalState.history.map((isOptimal, _) => isOptimal.toDouble).toArray)
     )
   }
 
@@ -80,14 +92,14 @@ def generatePlot(dvs: Map[String, DenseVector[Double]], fileName: String, ylabel
   val f = breeze.plot.Figure()
   val p = f.subplot(0)
   p.legend = true
+  p.xlabel = xlabel
+  p.ylabel = ylabel
+  p.ylim(Math.min(0D, dvs.values.minBy(_.min).min), Math.max(0D, dvs.values.maxBy(_.max).max))
   dvs.foreach { (name, dv) =>
     p += plot(
       x = (1 to dv.length).map(_.toDouble).toSeq, 
       y = dv.toVector, 
       name = name)
-    p.xlabel = xlabel
-    p.ylabel = ylabel
-    p.ylim(0D, Math.max(1D, dv.max))
   }
   f.saveas(s"$fileName$ylabel.png")
 

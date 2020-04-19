@@ -9,7 +9,7 @@ import org.apache.commons.math3.distribution._
 import scala.collection.mutable
 import scala.util.Random
 
-def εGreedy(ε: Probability)(actionRewards: mutable.Map[Action, Reward]): Action = {
+def εGreedy(ε: Probability)(actionRewards: Map[Action, Reward]): Action = {
   if (ε > Probability.Never && ε.wonLottery()) {
     val array = actionRewards.toArray
     val (action, _): (Action, Reward) = array(Random.nextInt(array.size))
@@ -41,15 +41,15 @@ private def updateAverage(Q: Double, n: Step, R: Double, averageMethod: (Step) =
 def sampleAverage(step: Step) = 1D / step.toInt
 def exponentialRecencyWeightedAverage(weight: Double)(step: Step) = weight
 
-def average(averageMethod: (Step) => Double)(actionRewards: mutable.Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step): Unit = {
-  actionRewards(currentAction) = Reward(
+def average(averageMethod: (Step) => Double)(actionRewards: Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step): Map[Action, Reward] = {
+  actionRewards.updated(currentAction, Reward(
     updateAverage(
       actionRewards(currentAction).toDouble,
       currentStep,
       currentReward.toDouble,
       averageMethod
     )
-  )
+  ))
 }
 
 def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
@@ -61,9 +61,8 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   val environment = testbed.tenArmEnvironment
   
   val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = εs.map(ε => { 
-    val agent = TabularAgent(
+    val agent = TabularAgent.blankSlate(
       environment,
-      OneState,
       εGreedy(ε),
       average(sampleAverage),
       true
@@ -99,37 +98,17 @@ def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Bool
     ("Exponential Recency", exponentialRecencyWeightedAverage(0.1))
   )
 
-  class NonstationaryReward extends RandomReward {
-    val random = new NormalDistribution(0, 1)
-    var nonstationaryTrueReward: Reward = Reward(random.sample)
-    val randomStepper = new NormalDistribution(0D, 0.01)
-
-    private def updateTrueReward: Reward = {
-      nonstationaryTrueReward = nonstationaryTrueReward + Reward(randomStepper.sample)
-      nonstationaryTrueReward
-    }
-
-    override def sample: Reward = {
-      val newReward = updateTrueReward
-      val sampler = new NormalDistribution(newReward.toDouble, 1)
-      Reward(sampler.sample)
-    }
-
-    override def trueReward: Reward = nonstationaryTrueReward
-  }
-
   val actions: Vector[Action] = Range(0, 9).map(n => Action(n.toString)).toVector
-  val actionValues: Action => RandomReward = actions.map(a =>
-    (a, (NonstationaryReward()))
+  val actionValues: Map[Action, RandomReward] = actions.map(a =>
+    (a, (NonstationaryReward.randomStart))
   ).toMap
 
   val environment = testbed.tenArmEnvironment.copy(actionRewards = actionValues)
   
   val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = 
     averageMethods.map((name, am) => { 
-      val agent = TabularAgent(
+      val agent = TabularAgent.blankSlate(
         environment,
-        OneState,
         εGreedy(ε),
         average(am),
         true

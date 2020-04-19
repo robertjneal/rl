@@ -2,9 +2,9 @@ package com.robertjneal.rl
 
 import com.robertjneal.rl.types._
 
-trait Environment(val possibleStateActions: Map[State, Vector[Action]]) {
-  def act(s: State, a: Action): (Reward, State)
-  def isOptimal(s: State, a: Action): OptimalAct
+trait Environment(val possibleStateActions: Map[State, Vector[Action]], val state: State) {
+  def act(a: Action): (Reward, Environment)
+  def isOptimal(a: Action): OptimalAct
 }
 
 final val OneState = State("OneState")
@@ -14,28 +14,32 @@ final val OneState = State("OneState")
  */
 case class BanditEnvironment(
   possibleActions: Vector[Action],
-  actionRewards: Action => RandomReward
-  ) extends Environment(Map(OneState -> possibleActions)) {
+  actionRewards: Map[Action, RandomReward]
+  ) extends Environment(Map(OneState -> possibleActions), OneState) {
   require(possibleStateActions.size == 1)
 
-  def act(s: State, a: Action): (Reward, State) = {
-    (actionRewards(a).sample, s)
+  def act(a: Action): (Reward, Environment) = {
+    val (reward, updatedRewardFunction): (Reward, RandomReward) = actionRewards(a).sample
+    val updatedActionRewards = actionRewards.updated(a, updatedRewardFunction)
+    (reward, this.copy(actionRewards = updatedActionRewards))
   }
 
   // TODO: memoize when stationary?
-  def isOptimal(s: State, a: Action): OptimalAct = {
+  def isOptimal(a: Action): OptimalAct = {
     OptimalAct(optimalActs.contains(a))
   }
 
   private val actionTrueRewards: Vector[(Reward, Action)] = possibleActions.map(a => (actionRewards(a).trueReward, a))
 
-  private lazy val maxReward: Reward = {
+  // TODO: memoize when stationary?
+  private def maxReward: Reward = {
     Reward(actionTrueRewards.map {
       case (r, _) => r.toDouble
     }.max)
   }
 
-  private lazy val optimalActs: Vector[Action] = {
+  // TODO: memoize when stationary?
+  private def optimalActs: Vector[Action] = {
     actionTrueRewards
       .filter { case (r, _) => r == maxReward }
       .map { case (_, a) => a }
