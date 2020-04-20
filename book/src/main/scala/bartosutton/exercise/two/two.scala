@@ -89,3 +89,50 @@ def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Bool
     testbed.generatePlot(optimalActs.toMap, s"2.5", "% optimal acts")
   }
 }
+
+def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
+  val εAndBiases = Vector(
+    (Probability.unsafe(0.1), 0),
+    (Probability.unsafe(0.1), 5)
+  )
+  val environment = testbed.tenArmEnvironment
+
+  val initialActionSteps = environment.possibleStateActions.map { 
+    case (s, as) => s -> Map(as.map(_ -> Step(0)): _*) 
+  }
+
+  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = εAndBiases.map((ε, bias) => { 
+    val initialTable = environment.possibleStateActions.map { 
+      case (s, as) => s -> Map(as.map(_ -> Reward(bias)): _*) 
+    } 
+    val agent = TabularAgent(
+      environment,
+      εGreedy(ε),
+      average(sampleAverage),
+      Step(0),
+      initialActionSteps,
+      initialTable,
+      true
+    )
+    val result = testbed.run(
+      agent,
+      runs = 2000,
+      steps = 1000
+    )
+    ((s"ε=$ε, Q1=$bias" , result.meanRewards), (s"ε=$ε, Q1=$bias", result.optimalActs))
+  })
+
+  if (debug) {
+    for (i <- 0 until 100) {
+      println(indexedResults.head._1._2(i))
+      println(indexedResults.head._2._2(i))
+      println("-")
+    }
+  }
+
+  if (generatePlots) {
+    val (meanRewards, optimalActs) = indexedResults.unzip
+    testbed.generatePlot(meanRewards.toMap, s"2.2 ${meanRewards.head._1}", "mean reward")
+    testbed.generatePlot(optimalActs.toMap, s"2.2 ${optimalActs.head._1}", "% optimal acts")
+  }
+}
