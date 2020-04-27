@@ -38,7 +38,7 @@ class TwoTest {
     @Test
     def εGreedyTest() = {
         for (i <- 0 until 1000) {
-            val result = εGreedy(Probability.unsafe(0))(actionRewards)
+            val result = εGreedy(Probability.unsafe(0))(Step(0), Map.empty[State, Map[Action, Step]])(actionRewards)
             assertEquals(bestAction, result)
         }
     }
@@ -50,7 +50,7 @@ class TwoTest {
     def εGreedy10Test() = {
         val iterations = 10000
         val actionsSelected = for (i <- 0 until iterations) 
-            yield εGreedy(Probability.unsafe(0.1))(actionRewards)
+            yield εGreedy(Probability.unsafe(0.1))(Step(0), Map.empty[State, Map[Action, Step]])(actionRewards)
 
         val bestChosen = actionsSelected.count(_ == bestAction) / iterations.toDouble
         val expected = 0.9 + (.1/3.0)
@@ -68,7 +68,7 @@ class TwoTest {
         
         val iterations = 10000
         val actionsSelected = for (i <- 0 until iterations) 
-            yield εGreedy(Probability.unsafe(0))(threeGreedyActions)
+            yield εGreedy(Probability.unsafe(0))(Step(0), Map.empty[State, Map[Action, Step]])(threeGreedyActions)
             
         val bestChosen = actionsSelected.count(_ == bestAction) / iterations.toDouble
         val best2Chosen = actionsSelected.count(_ == bestAction2) / iterations.toDouble

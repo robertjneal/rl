@@ -1,27 +1,44 @@
 package com.robertjneal.rl.actionselector
 
+import com.robertjneal.rl.OneState
 import com.robertjneal.rl.types._
 import scala.util.Random
 
-def εGreedy(ε: Probability)(actionRewards: Map[Action, Reward]): Action = {
+def upperConfidenceBound(c: Int)(step: Step, actionSteps: Map[State, Map[Action, Step]])(actionRewards: Map[Action, Reward]): Action = {
+  def valueTransformer(action: Action, reward: Reward): Double = {
+    reward.toDouble + c * (Math.log(step.toInt)/actionSteps(OneState)(action).toInt.toDouble)
+  }
+
+  val maxima = collectMaxima(valueTransformer, actionRewards)
+  val (action, _): (Action, Reward) = maxima(Random.nextInt(maxima.length))
+  action
+}
+
+def εGreedy(ε: Probability)(step: Step, actionSteps: Map[State, Map[Action, Step]])(actionRewards: Map[Action, Reward]): Action = {
+  def valueTransformer(action: Action, reward: Reward): Double = reward.toDouble
+
   if (ε > Probability.Never && ε.wonLottery()) {
     val array = actionRewards.toArray
     val (action, _): (Action, Reward) = array(Random.nextInt(array.size))
     action
   } else {
-    val max = actionRewards.foldLeft(Vector.empty[(Action, Reward)])((maxima, current) => {
-      val (_, currentReward) = current
-      maxima.headOption match {
-        case Some((_, maxReward)) =>
-          if (maxReward > currentReward) maxima
-          else if (maxReward == currentReward) maxima :+ current
-          else Vector(current) 
-        case None => Vector(current)
-      }
-    })
-    val (action, _): (Action, Reward) = max(Random.nextInt(max.length))
+    val maxima = collectMaxima(valueTransformer, actionRewards)
+    val (action, _): (Action, Reward) = maxima(Random.nextInt(maxima.length))
     action
   }
+}
+
+private def collectMaxima(valueTransformer: (Action, Reward) => Double, actionRewards: Map[Action, Reward]): Vector[(Action, Reward)] = {
+  actionRewards.foldLeft(Vector.empty[(Action, Reward)])((maxima, current) => {
+    val (currentAction, currentReward) = current
+    maxima.headOption match {
+      case Some((maxAction, maxReward)) =>
+        if (valueTransformer(maxAction, maxReward) > valueTransformer(currentAction, currentReward)) maxima
+        else if (valueTransformer(maxAction, maxReward) == valueTransformer(currentAction, currentReward)) maxima :+ current
+        else Vector(current) 
+      case None => Vector(current)
+    }
+  })
 }
 
 // When recencyWeight is 1/n, this is equivalent to:

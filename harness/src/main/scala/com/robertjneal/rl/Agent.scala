@@ -4,7 +4,7 @@ import com.robertjneal.rl.types._
 
 case class TabularAgent(
   e: Environment, 
-  actionSelector: Map[Action, Reward] => Action, 
+  actionSelector: (Step, Map[State, Map[Action, Step]]) => Map[Action, Reward] => Action, 
   updater: (Map[Action, Reward], Action, Reward, Step) => Map[Action, Reward],
   step: Step,
   actionSteps: Map[State, Map[Action, Step]],
@@ -15,7 +15,7 @@ case class TabularAgent(
   private val mutableHistory: Array[(OptimalAct, Reward)] = Array.empty
 
   def act: TabularAgent = {
-    val action = actionSelector(table(e.state))
+    val action = actionSelector(step, actionSteps)(table(e.state))
     val updatedActionSteps: Map[State, Map[Action, Step]] = actionSteps.updated(e.state,
       actionSteps(e.state).updated(
         action, 
@@ -46,7 +46,7 @@ case class TabularAgent(
 
 object TabularAgent {
   def blankSlate(e: Environment, 
-  actionSelector: Map[Action, Reward] => Action, 
+  actionSelector: (Step, Map[State, Map[Action, Step]]) => Map[Action, Reward] => Action,
   updater: (Map[Action, Reward], Action, Reward, Step) => Map[Action, Reward],
 recordHistory: Boolean = false): TabularAgent = {
     val initialActionSteps = e.possibleStateActions.map { 
