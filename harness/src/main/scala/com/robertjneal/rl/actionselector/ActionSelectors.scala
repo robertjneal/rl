@@ -6,7 +6,7 @@ import scala.util.Random
 
 def upperConfidenceBound(c: Int)(step: Step, actionSteps: Map[State, Map[Action, Step]])(actionRewards: Map[Action, Reward]): Action = {
   def valueTransformer(action: Action, reward: Reward): Double = {
-    reward.toDouble + c * (Math.log(step.toInt)/actionSteps(OneState)(action).toInt.toDouble)
+    reward.toDouble + c * Math.sqrt(Math.log(step.toInt)/actionSteps(OneState)(action).toInt.toDouble)
   }
 
   val maxima = collectMaxima(valueTransformer, actionRewards)
