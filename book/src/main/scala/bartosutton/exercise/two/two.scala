@@ -98,7 +98,7 @@ def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   val environment = testbed.tenArmEnvironment
 
   val initialActionSteps = environment.possibleStateActions.map { 
-    case (s, as) => s -> Map(as.map(_ -> Step(0)): _*) 
+    case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
   }
 
   val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = εAndBiases.map((ε, bias) => { 
@@ -109,7 +109,7 @@ def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
       environment,
       εGreedy(ε),
       average(sampleAverage),
-      Step(0),
+      Step(1),
       initialActionSteps,
       initialTable,
       true
