@@ -31,13 +31,13 @@ class AgentTest {
     val result1: TabularAgent = agent.act
 
     assertEquals(agent.e.possibleStateActions, result1.e.possibleStateActions)
-    assertEquals(1, result1.actionSteps(OneState).values.map(_.toInt).sum)
-    assertEquals(result1.step, result1.actionSteps(OneState).values.map(_.toInt).sum)
+    assertEquals(1, result1.actionSteps(OneState).values.map(_.toInt).sum - actionRewards.size)
+    assertEquals(result1.step, result1.actionSteps(OneState).values.map(_.toInt).sum - actionRewards.size)
 
     val result2: TabularAgent = result1.act
 
     assertEquals(result1.e.possibleStateActions, result2.e.possibleStateActions)
-    assertEquals(2, result2.actionSteps(OneState).values.map(_.toInt).sum)
-    assertEquals(result2.step, result2.actionSteps(OneState).values.map(_.toInt).sum)
+    assertEquals(2, result2.actionSteps(OneState).values.map(_.toInt).sum - actionRewards.size)
+    assertEquals(result2.step, result2.actionSteps(OneState).values.map(_.toInt).sum - actionRewards.size)
   }
 }

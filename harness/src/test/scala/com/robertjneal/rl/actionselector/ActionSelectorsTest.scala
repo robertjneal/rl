@@ -1,8 +1,10 @@
 package com.robertjneal.rl.actionselector
 
+import com.robertjneal.rl.OneState
 import com.robertjneal.rl.types._
 import org.junit.Assert._
 import org.junit.Test
+import scala.annotation.tailrec
 
 class TwoTest {
     import scala.language.implicitConversions
@@ -17,6 +19,7 @@ class TwoTest {
         (Action("C=1.1"), Reward(1.1)),
     )
 
+    @tailrec
     private def updatedActionRewards(averageMethod: (Step) => Double, actionRewardsToUpdate: Map[Action, Reward], numbers: List[Int], action: Action, originalSize: Int): Map[Action, Reward] = {
       if (numbers.length == 0) actionRewardsToUpdate
       else {
@@ -131,5 +134,36 @@ class TwoTest {
         val finalActionRewards = updatedActionRewards(exponentialRecencyWeightedAverage(α), actionRewards, orderedRewards, action, orderedRewards.length)
 
         assertEquals(expected, finalActionRewards(action).toDouble, acceptableMargin)
+    }
+
+    /*
+    When c is high enough, each of n arms should be tried once within the first n times
+    */
+    @Test
+    def upperConfidenceBoundTest() = {
+        val c = 4
+
+        def agent(n: Int, actionSteps: Map[State, Map[Action, Step]], i: Int = 0, actionsSelected: Seq[Action] = Seq.empty): Seq[Action] = {
+            if (n == i) actionsSelected
+            else {
+                val action = upperConfidenceBound(c, OneState)(Step(i), actionSteps)(actionRewards)
+                agent(n,
+                    actionSteps.updated(OneState, 
+                        actionSteps(OneState).updated(action,
+                            actionSteps(OneState)(action).increment
+                        )
+                    ),
+                    i + 1, 
+                    action +: actionsSelected
+                )
+            }
+        }
+
+        val iterations = actionRewards.size
+        val actionsSelected = agent(iterations, Map(OneState -> actionRewards.map(ar => (ar._1, Step(1)))))
+
+        actionRewards.keys.foreach(a =>    
+            assertEquals(1, actionsSelected.count(selected => selected == a))
+        )
     }
 }

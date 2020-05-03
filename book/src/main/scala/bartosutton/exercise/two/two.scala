@@ -140,7 +140,7 @@ def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
 def figure2dot4(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
   val fs = Vector(
     (εGreedy(Probability.unsafe(0.1)), "ε=0.1"),
-    (upperConfidenceBound(2), "UCB, c=2")
+    (upperConfidenceBound(2, OneState), "UCB, c=2")
   )
   val environment = testbed.tenArmEnvironment
 

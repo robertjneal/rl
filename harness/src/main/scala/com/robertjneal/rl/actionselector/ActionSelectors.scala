@@ -1,12 +1,12 @@
 package com.robertjneal.rl.actionselector
 
-import com.robertjneal.rl.OneState
 import com.robertjneal.rl.types._
 import scala.util.Random
 
-def upperConfidenceBound(c: Int)(step: Step, actionSteps: Map[State, Map[Action, Step]])(actionRewards: Map[Action, Reward]): Action = {
+def upperConfidenceBound(c: Int, state: State)(step: Step, actionSteps: Map[State, Map[Action, Step]])(actionRewards: Map[Action, Reward]): Action = {
   def valueTransformer(action: Action, reward: Reward): Double = {
-    reward.toDouble + c * Math.sqrt(Math.log(step.toInt)/actionSteps(OneState)(action).toInt.toDouble)
+    val actionStep = actionSteps.getOrElse(state, Map(action -> Step(0))).getOrElse(action, Step(0))
+    reward.toDouble + c * Math.sqrt(Math.log(step.toInt)/actionStep.toInt.toDouble)
   }
 
   val maxima = collectMaxima(valueTransformer, actionRewards)
