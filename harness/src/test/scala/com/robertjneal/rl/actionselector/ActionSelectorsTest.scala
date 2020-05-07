@@ -1,13 +1,15 @@
 package com.robertjneal.rl.actionselector
 
+import com.robertjneal.rl.OneState
 import com.robertjneal.rl.types._
 import org.junit.Assert._
 import org.junit.Test
+import scala.annotation.tailrec
 
 class TwoTest {
     import scala.language.implicitConversions
 
-    private val acceptableMargin = 0.01
+    private val acceptableMargin = 0.0111
     private val bestRewardValue = 1.9
     private val bestAction = Action(s"A$bestRewardValue")
     private val best = (bestAction, Reward(bestRewardValue))
@@ -17,6 +19,7 @@ class TwoTest {
         (Action("C=1.1"), Reward(1.1)),
     )
 
+    @tailrec
     private def updatedActionRewards(averageMethod: (Step) => Double, actionRewardsToUpdate: Map[Action, Reward], numbers: List[Int], action: Action, originalSize: Int): Map[Action, Reward] = {
       if (numbers.length == 0) actionRewardsToUpdate
       else {
@@ -38,7 +41,7 @@ class TwoTest {
     @Test
     def εGreedyTest() = {
         for (i <- 0 until 1000) {
-            val result = εGreedy(Probability.unsafe(0))(actionRewards)
+            val result = εGreedy(Probability.unsafe(0))(Step(0), Map.empty[State, Map[Action, Step]])(actionRewards)
             assertEquals(bestAction, result)
         }
     }
@@ -50,7 +53,7 @@ class TwoTest {
     def εGreedy10Test() = {
         val iterations = 10000
         val actionsSelected = for (i <- 0 until iterations) 
-            yield εGreedy(Probability.unsafe(0.1))(actionRewards)
+            yield εGreedy(Probability.unsafe(0.1))(Step(0), Map.empty[State, Map[Action, Step]])(actionRewards)
 
         val bestChosen = actionsSelected.count(_ == bestAction) / iterations.toDouble
         val expected = 0.9 + (.1/3.0)
@@ -68,7 +71,7 @@ class TwoTest {
         
         val iterations = 10000
         val actionsSelected = for (i <- 0 until iterations) 
-            yield εGreedy(Probability.unsafe(0))(threeGreedyActions)
+            yield εGreedy(Probability.unsafe(0))(Step(0), Map.empty[State, Map[Action, Step]])(threeGreedyActions)
             
         val bestChosen = actionsSelected.count(_ == bestAction) / iterations.toDouble
         val best2Chosen = actionsSelected.count(_ == bestAction2) / iterations.toDouble
@@ -131,5 +134,67 @@ class TwoTest {
         val finalActionRewards = updatedActionRewards(exponentialRecencyWeightedAverage(α), actionRewards, orderedRewards, action, orderedRewards.length)
 
         assertEquals(expected, finalActionRewards(action).toDouble, acceptableMargin)
+    }
+
+    /*
+    When c is high enough, each of n arms should be tried once within the first n times
+    */
+    @Test
+    def upperConfidenceBoundHighCTest() = {
+        val c = 4
+
+        def agent(n: Int, actionSteps: Map[State, Map[Action, Step]], i: Int = 0, actionsSelected: Seq[Action] = Seq.empty): Seq[Action] = {
+            if (n == i) actionsSelected
+            else {
+                val action = upperConfidenceBound(c, OneState)(Step(i + 1), actionSteps)(actionRewards)
+                agent(n,
+                    actionSteps.updated(OneState, 
+                        actionSteps(OneState).updated(action,
+                            actionSteps(OneState)(action).increment
+                        )
+                    ),
+                    i + 1, 
+                    action +: actionsSelected
+                )
+            }
+        }
+
+        val iterations = actionRewards.size
+        val actionsSelected = agent(iterations, Map(OneState -> actionRewards.map(ar => (ar._1, Step(1)))))
+
+        actionRewards.keys.foreach(a =>    
+            assertEquals(1, actionsSelected.count(selected => selected == a))
+        )
+    }
+
+    /*
+    When c is 0, the best arm should be selected every time
+    */
+    @Test
+    def upperConfidenceBoundZeroCTest() = {
+        val c = 0
+
+        def agent(n: Int, actionSteps: Map[State, Map[Action, Step]], i: Int = 0, actionsSelected: Seq[Action] = Seq.empty): Seq[Action] = {
+            if (n == i) actionsSelected
+            else {
+                val action = upperConfidenceBound(c, OneState)(Step(i + 1), actionSteps)(actionRewards)
+                agent(n,
+                    actionSteps.updated(OneState, 
+                        actionSteps(OneState).updated(action,
+                            actionSteps(OneState)(action).increment
+                        )
+                    ),
+                    i + 1, 
+                    action +: actionsSelected
+                )
+            }
+        }
+
+        val iterations = 100
+        val actionsSelected = agent(iterations, Map(OneState -> actionRewards.map(ar => (ar._1, Step(1)))))
+
+        actionRewards.keys.foreach(a => 
+            assert((actionsSelected.contains(a) && a == bestAction) || actionsSelected.count(selected => selected == a) == 0)
+        )
     }
 }

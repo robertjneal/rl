@@ -98,7 +98,7 @@ def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   val environment = testbed.tenArmEnvironment
 
   val initialActionSteps = environment.possibleStateActions.map { 
-    case (s, as) => s -> Map(as.map(_ -> Step(0)): _*) 
+    case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
   }
 
   val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = εAndBiases.map((ε, bias) => { 
@@ -109,7 +109,7 @@ def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
       environment,
       εGreedy(ε),
       average(sampleAverage),
-      Step(0),
+      Step(1),
       initialActionSteps,
       initialTable,
       true
@@ -120,6 +120,43 @@ def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
       steps = 1000
     )
     ((s"ε=$ε, Q1=$bias" , result.meanRewards), (s"ε=$ε, Q1=$bias", result.optimalActs))
+  })
+
+  if (debug) {
+    for (i <- 0 until 100) {
+      println(indexedResults.head._1._2(i))
+      println(indexedResults.head._2._2(i))
+      println("-")
+    }
+  }
+
+  if (generatePlots) {
+    val (meanRewards, optimalActs) = indexedResults.unzip
+    testbed.generatePlot(meanRewards.toMap, s"2.2 ${meanRewards.head._1}", "mean reward")
+    testbed.generatePlot(optimalActs.toMap, s"2.2 ${optimalActs.head._1}", "% optimal acts")
+  }
+}
+
+def figure2dot4(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
+  val fs = Vector(
+    (εGreedy(Probability.unsafe(0.1)), "ε=0.1"),
+    (upperConfidenceBound(2, OneState), "UCB, c=2")
+  )
+  val environment = testbed.tenArmEnvironment
+
+  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = fs.map((f, name) => { 
+    val agent = TabularAgent.blankSlate(
+      environment,
+      f,
+      average(sampleAverage),
+      true
+    )
+    val result = testbed.run(
+      agent,
+      runs = 2000,
+      steps = 1000
+    )
+    ((name, result.meanRewards), (name, result.optimalActs))
   })
 
   if (debug) {

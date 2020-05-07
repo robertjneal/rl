@@ -17,7 +17,7 @@ class testbedTest {
       threeActions.map(_._1).toVector,
       threeActions.toMap
     )
-    def pickBest(map: Map[Action, Reward]): Action = {
+    def pickBest(step: Step, actionsSteps: Map[State, Map[Action, Step]])(map: Map[Action, Reward]): Action = {
       map.maxBy(_._2.toDouble)._1
     }
     def sampleAverage(actionRewards: Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step): 
