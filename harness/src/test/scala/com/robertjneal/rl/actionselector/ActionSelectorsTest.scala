@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 class TwoTest {
     import scala.language.implicitConversions
 
-    private val acceptableMargin = 0.01
+    private val acceptableMargin = 0.0111
     private val bestRewardValue = 1.9
     private val bestAction = Action(s"A$bestRewardValue")
     private val best = (bestAction, Reward(bestRewardValue))
@@ -140,13 +140,13 @@ class TwoTest {
     When c is high enough, each of n arms should be tried once within the first n times
     */
     @Test
-    def upperConfidenceBoundTest() = {
+    def upperConfidenceBoundHighCTest() = {
         val c = 4
 
         def agent(n: Int, actionSteps: Map[State, Map[Action, Step]], i: Int = 0, actionsSelected: Seq[Action] = Seq.empty): Seq[Action] = {
             if (n == i) actionsSelected
             else {
-                val action = upperConfidenceBound(c, OneState)(Step(i), actionSteps)(actionRewards)
+                val action = upperConfidenceBound(c, OneState)(Step(i + 1), actionSteps)(actionRewards)
                 agent(n,
                     actionSteps.updated(OneState, 
                         actionSteps(OneState).updated(action,
@@ -164,6 +164,37 @@ class TwoTest {
 
         actionRewards.keys.foreach(a =>    
             assertEquals(1, actionsSelected.count(selected => selected == a))
+        )
+    }
+
+    /*
+    When c is 0, the best arm should be selected every time
+    */
+    @Test
+    def upperConfidenceBoundZeroCTest() = {
+        val c = 0
+
+        def agent(n: Int, actionSteps: Map[State, Map[Action, Step]], i: Int = 0, actionsSelected: Seq[Action] = Seq.empty): Seq[Action] = {
+            if (n == i) actionsSelected
+            else {
+                val action = upperConfidenceBound(c, OneState)(Step(i + 1), actionSteps)(actionRewards)
+                agent(n,
+                    actionSteps.updated(OneState, 
+                        actionSteps(OneState).updated(action,
+                            actionSteps(OneState)(action).increment
+                        )
+                    ),
+                    i + 1, 
+                    action +: actionsSelected
+                )
+            }
+        }
+
+        val iterations = 100
+        val actionsSelected = agent(iterations, Map(OneState -> actionRewards.map(ar => (ar._1, Step(1)))))
+
+        actionRewards.keys.foreach(a => 
+            assert((actionsSelected.contains(a) && a == bestAction) || actionsSelected.count(selected => selected == a) == 0)
         )
     }
 }
