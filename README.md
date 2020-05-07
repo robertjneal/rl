@@ -19,6 +19,16 @@ In the future I'll include some examples on how to use the framework and various
 good example can be found in the function `bartosutton.exercise.two.figure2dot2`. As I add more algorithms, 
 I'll move them around to be consumed more like a library.
 
-### Some Features of Dotty
+### Some Features of Dotty Used in this Library
+
+#### Opaque Types
 
 This library leverages [Opaque Types](https://dotty.epfl.ch/docs/reference/other-new-features/opaques.html) pretty heavily. Opaque Types have a lot of nice features. See for example, [harness/src/main/scala/com/robertjneal/rl/types/Reward.scala](https://github.com/robertjneal/rl/blob/master/harness/src/main/scala/com/robertjneal/rl/types/Reward.scala). In addition to being able to provide type safety at compile time without overhead costs of boxing, it allows for easily adding operations. It would be nice if the Opaque Type could "inherit" the operations of the type it is aliasing, but still a wonderful feature nonetheless, especially in libraries where there are a lot of numeric operations, like a reinforcement library. Without Opaque Types we would need to either have classes for each type (or Value Classes in Scala 2) or use the primitive types. The former has a lot of overhead, and the latter is confusing.
+
+#### Trait Parameters
+
+I also take advantage of [trait parameters](https://dotty.epfl.ch/docs/reference/other-new-features/trait-parameters.html). For example, see [harness/src/main/scala/com/robertjneal/rl/Environment.scala](https://github.com/robertjneal/rl/blob/master/harness/src/main/scala/com/robertjneal/rl/Environment.scala#L5). 
+
+#### Parameter Untupling
+
+You will also find [parameter untupling](https://dotty.epfl.ch/docs/reference/other-new-features/parameter-untupling.html) preferred as in [harness/src/main/scala/com/robertjneal/rl/Environment.scala](https://github.com/robertjneal/rl/blob/master/harness/src/main/scala/com/robertjneal/rl/Environment.scala#L37).
