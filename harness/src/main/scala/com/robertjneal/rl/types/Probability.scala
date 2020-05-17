@@ -3,6 +3,8 @@ package com.robertjneal.rl.types
 // Probability type from https://docs.scala-lang.org/sips/opaque-types.html
 opaque type Probability = Double
 object Probability {
+  import scala.util.Random
+
   def apply(n: Double): Option[Probability] =
     if (0.0 <= n && n <= 1.0) Some(n) else None
 
@@ -17,6 +19,8 @@ object Probability {
   val CoinToss: Probability = 0.5
   val Certain: Probability = 1.0
 
+  def random: Probability = Random.nextDouble
+
   implicit val ordering: Ordering[Probability] =
     implicitly[Ordering[Double]]
 
@@ -29,8 +33,6 @@ object Probability {
 
     def isImpossible: Boolean = p1 == Never
     def isCertain: Boolean = p1 == Certain
-
-    import scala.util.Random
 
     def wonLottery(r: Random = Random): Boolean = r.nextDouble <= p1
     def toDouble: Double = p1
