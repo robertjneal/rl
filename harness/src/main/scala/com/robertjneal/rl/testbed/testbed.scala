@@ -2,6 +2,7 @@ package com.robertjneal.rl.testbed
 
 import breeze.linalg.{Vector => BreezeVector, _}
 import com.robertjneal.rl._
+import com.robertjneal.rl.agent.TabularAgent
 import com.robertjneal.rl.types._
 import java.util.concurrent.ThreadLocalRandom
 import org.apache.commons.math3.distribution._
@@ -36,8 +37,8 @@ class ThreadLocalRandomGenerator extends RandomGenerator {
   def setSeed(seed: Long): Unit = rng.setSeed(seed)
 }
 
-lazy val tenArmEnvironment: BanditEnvironment = {
-  val random = new NormalDistribution(0, 1)
+def tenArmEnvironment(μ: Double = 0D): BanditEnvironment = {
+  val random = new NormalDistribution(μ, 1)
   val actions: Vector[Action] = Range(0, 9).map(n => Action(n.toString)).toVector
   val actionValues: Map[Action, RandomReward] = actions.map(a =>
     (a, StationaryDistribution(new NormalDistribution(ThreadLocalRandomGenerator(), random.sample, 1)))
@@ -54,7 +55,7 @@ def run(agent: TabularAgent, runs: Int, steps: Int): MeanOptimal = {
   import scala.collection.parallel.CollectionConverters._
   
   val meansOptimalsList: ParSeq[MeanOptimal] = (1 to runs).par.map { elem =>
-    val a = agent.copy()
+    val a = agent //.copy()
 
     def continueActing(actable: TabularAgent, counter: Int): TabularAgent = {
       if (counter <= 0) actable
@@ -79,7 +80,7 @@ def run(agent: TabularAgent, runs: Int, steps: Int): MeanOptimal = {
   )  
 }  
 
-def generatePlot(dvs: Map[String, DenseVector[Double]], fileName: String, ylabel: String, xlabel: String = "steps"): Unit = {
+def generatePlot(dvs: Map[String, DenseVector[Double]], fileName: String, ylabel: String, xlabel: String = "steps", percentage: Boolean = false): Unit = {
   import breeze.plot._
 
   val f = breeze.plot.Figure()
@@ -87,7 +88,11 @@ def generatePlot(dvs: Map[String, DenseVector[Double]], fileName: String, ylabel
   p.legend = true
   p.xlabel = xlabel
   p.ylabel = ylabel
-  p.ylim(Math.min(0D, dvs.values.minBy(_.min).min), Math.max(0D, dvs.values.maxBy(_.max).max))
+  if (percentage) {
+    p.ylim(0.0, 1.0)
+  } else {
+    p.ylim(Math.min(0D, dvs.values.minBy(_.min).min), Math.max(0D, dvs.values.maxBy(_.max).max))
+  }
   dvs.foreach { (name, dv) =>
     p += plot(
       x = (1 to dv.length).map(_.toDouble).toSeq, 

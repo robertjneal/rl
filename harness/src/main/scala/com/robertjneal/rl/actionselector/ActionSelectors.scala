@@ -4,12 +4,15 @@ import com.robertjneal.rl.types._
 import scala.util.Random
 
 def softMaxProbabilities(actionPreferences: Map[Action, Preference]): Map[Action, Probability] = {
-  val eulersActionPreferences = actionPreferences.map{ ap => (ap._1, Math.exp(ap._2.toDouble)) }
-  val eulersTotalPreference = actionPreferences.values.reduce { _ + _ }
+  val eulersActionPreferences: Map[Action, Double] = actionPreferences.map{ ap => 
+    val (action, preference) = ap
+    (action, Math.exp(preference.toDouble)) 
+  }
+  val eulersTotalPreference: Double = eulersActionPreferences.values.sum
   val actionProbabilities = eulersActionPreferences.map { ap =>
     val (action, preference) = ap
     val probability = Probability.unsafe(preference.toDouble / eulersTotalPreference.toDouble)
-    (action, probability)
+    action -> probability
   }
   actionProbabilities
 }

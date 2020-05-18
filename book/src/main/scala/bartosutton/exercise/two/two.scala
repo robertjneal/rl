@@ -2,10 +2,11 @@ package bartosutton.exercise.two
 
 import breeze.linalg.DenseVector
 import com.robertjneal.rl.actionselector._
-import com.robertjneal.rl.TabularAgent
+import com.robertjneal.rl.agent._
 import com.robertjneal.rl._
 import com.robertjneal.rl.testbed
 import com.robertjneal.rl.types._
+import com.robertjneal.rl.updater._
 import org.apache.commons.math3.distribution._
 import scala.collection.mutable
 
@@ -15,10 +16,10 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     Probability.unsafe(0.01),
     Probability.Never
   )
-  val environment = testbed.tenArmEnvironment
+  val environment = testbed.tenArmEnvironment()
   
   val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = εs.map(ε => { 
-    val agent = TabularAgent.blankSlate(
+    val agent = TabularRewardAgent.blankSlate(
       environment,
       εGreedy(ε),
       average(sampleAverage),
@@ -60,11 +61,11 @@ def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Bool
     (a, (NonstationaryReward.randomStart))
   ).toMap
 
-  val environment = testbed.tenArmEnvironment.copy(actionRewards = actionValues)
+  val environment = testbed.tenArmEnvironment().copy(actionRewards = actionValues)
   
   val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = 
     averageMethods.map((name, am) => { 
-      val agent = TabularAgent.blankSlate(
+      val agent = TabularRewardAgent.blankSlate(
         environment,
         εGreedy(ε),
         average(am),
@@ -95,7 +96,7 @@ def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     (Probability.unsafe(0.1), 0),
     (Probability.unsafe(0.1), 5)
   )
-  val environment = testbed.tenArmEnvironment
+  val environment = testbed.tenArmEnvironment()
 
   val initialActionSteps = environment.possibleStateActions.map { 
     case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
@@ -105,7 +106,7 @@ def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     val initialTable = environment.possibleStateActions.map { 
       case (s, as) => s -> Map(as.map(_ -> Reward(bias)): _*) 
     } 
-    val agent = TabularAgent(
+    val agent = TabularRewardAgent(
       environment,
       εGreedy(ε),
       average(sampleAverage),
@@ -142,10 +143,10 @@ def figure2dot4(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     (εGreedy(Probability.unsafe(0.1)), "ε=0.1"),
     (upperConfidenceBound(2, OneState), "UCB, c=2")
   )
-  val environment = testbed.tenArmEnvironment
+  val environment = testbed.tenArmEnvironment()
 
   val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = fs.map((f, name) => { 
-    val agent = TabularAgent.blankSlate(
+    val agent = TabularRewardAgent.blankSlate(
       environment,
       f,
       average(sampleAverage),
@@ -172,4 +173,55 @@ def figure2dot4(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     testbed.generatePlot(meanRewards.toMap, s"2.2 ${meanRewards.head._1}", "mean reward")
     testbed.generatePlot(optimalActs.toMap, s"2.2 ${optimalActs.head._1}", "% optimal acts")
   }
+
+}
+
+def figure2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
+  val fs = Vector(
+    (0.1, Some(0D), "α=0.1, no baseline"),
+    (0.1, None, "α=0.1, baseline"),
+    (0.4, Some(0D), "α=0.4, no baseline"),
+    (0.4, None, "α=0.4, baseline")
+  )
+
+  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = fs.map((stepSize, baseline, name) => { 
+    val environment = testbed.tenArmEnvironment(4D)
+
+    val initialActionSteps = environment.possibleStateActions.map { 
+      case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
+    }
+  
+    val initialTable = environment.possibleStateActions.map { 
+      case (s, as) => s -> Map(as.map(_ -> (Reward(0), Preference(0))): _*) 
+    } 
+    val agent = TabularPreferenceAgent(
+      environment,
+      softMax,
+      stochasticGradientAscent(stepSize, baseline),
+      Step(1),
+      initialActionSteps,
+      initialTable,
+      true
+    )
+    val result = testbed.run(
+      agent,
+      runs = 2000,
+      steps = 1000
+    )
+    ((name, result.meanRewards), (name, result.optimalActs))
+  })
+
+  if (debug) {
+    for (i <- 0 until 100) {
+      println(indexedResults.head._1._2(i))
+      println(indexedResults.head._2._2(i))
+      println("-")
+    }
+  }
+
+  if (generatePlots) {
+    val (_, optimalActs) = indexedResults.unzip
+    testbed.generatePlot(optimalActs.toMap, s"2.5 optimal acts", "% optimal acts", percentage = true)
+  }
+  
 }

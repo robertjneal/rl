@@ -27,7 +27,7 @@ def average(averageMethod: (Step) => Double)(actionRewards: Map[Action, Reward],
   ))
 }
 
-def stochasticGradientAscent(α: Double)(actionPreferences: Map[Action, (Reward, Preference)], currentAction: Action, currentReward: Reward, currentStep: Step): Map[Action, (Reward, Preference)] = {
+def stochasticGradientAscent(α: Double, constantBaseline: Option[Double] = None)(actionPreferences: Map[Action, (Reward, Preference)], currentAction: Action, currentReward: Reward, currentStep: Step): Map[Action, (Reward, Preference)] = {
   val actionProbabilities = softMaxProbabilities(actionPreferences.map { arp => arp._1 -> arp._2._2 })
 
   actionPreferences.map { actionRewardPreference =>
@@ -36,12 +36,12 @@ def stochasticGradientAscent(α: Double)(actionPreferences: Map[Action, (Reward,
     if (action == currentAction) {
       action -> (
         Reward(updateAverage(reward.toDouble, currentStep, currentReward.toDouble, sampleAverage)),
-        Preference(preference.toDouble + α * (currentReward.toDouble - reward.toDouble) * (1 - actionProbabilities(action).toDouble))
+        Preference(preference.toDouble + α * (currentReward.toDouble - constantBaseline.getOrElse(reward.toDouble)) * (1 - actionProbabilities(action).toDouble))
       )
     } else {
       action -> (
         reward,
-        Preference(preference.toDouble - α * (currentReward.toDouble - reward.toDouble) * actionProbabilities(action).toDouble)
+        Preference(preference.toDouble - α * (currentReward.toDouble - constantBaseline.getOrElse(reward.toDouble)) * actionProbabilities(action).toDouble)
       )
     }
   }

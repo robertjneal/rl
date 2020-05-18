@@ -1,24 +1,24 @@
-package com.robertjneal.rl
+package com.robertjneal.rl.agent
 
+import com.robertjneal.rl.Environment
 import com.robertjneal.rl.types._
 
-case class TabularAgent(
+case class TabularRewardAgent(
   e: Environment, 
-  actionSelector: (Step, Map[State, Map[Action, Step]]) => Map[Action, Either[Reward, (Reward, Preference)]] => Action, 
-  updater: (Map[Action, Either[Reward, (Reward, Preference)]], Action, Reward, Step) => Map[Action, Either[Reward, (Reward, Preference)]],
+  actionSelector: (Step, Map[State, Map[Action, Step]]) => Map[Action, Reward] => Action, 
+  updater: (Map[Action, Reward], Action, Reward, Step) => Map[Action, Reward],
   step: Step,
   actionSteps: Map[State, Map[Action, Step]],
-  table: Map[State, Map[Action, Either[Reward, (Reward, Preference)]]],
+  table: Map[State, Map[Action, Reward]],
   recordHistory: Boolean = false,
   history: Array[(OptimalAct, Reward)] = Array.empty
-  ) {  
-  private val mutableHistory: Array[(OptimalAct, Reward)] = Array.empty
+  ) extends TabularAgent {  
 
-  def act: TabularAgent = {
+  def act: TabularRewardAgent = {
     val action = actionSelector(step, actionSteps)(table(e.state))
 
     val (reward, updatedEnvironment) = e.act(action)
-    val updatedTable: Map[State, Map[Action, Either[Reward, (Reward, Preference)]]] = Map(e.state -> updater(table(e.state), action, reward, actionSteps(e.state)(action)))
+    val updatedTable: Map[State, Map[Action, Reward]] = Map(e.state -> updater(table(e.state), action, reward, actionSteps(e.state)(action)))
 
     val updatedHistory = if (recordHistory) {
       val appendage = (e.isOptimal(action), reward)
@@ -32,7 +32,7 @@ case class TabularAgent(
       )
     )
 
-    TabularAgent(
+    TabularRewardAgent(
       updatedEnvironment,
       actionSelector,
       updater,
@@ -45,19 +45,19 @@ case class TabularAgent(
   }
 }
 
-object TabularAgent {
+object TabularRewardAgent {
   def blankSlate(e: Environment, 
-  actionSelector: (Step, Map[State, Map[Action, Step]]) => Map[Action, Either[Reward, (Reward, Preference)]] => Action, 
-  updater: (Map[Action, Either[Reward, (Reward, Preference)]], Action, Reward, Step) => Map[Action, Either[Reward, (Reward, Preference)]],
-  recordHistory: Boolean = false): TabularAgent = {
+  actionSelector: (Step, Map[State, Map[Action, Step]]) => Map[Action, Reward] => Action, 
+  updater: (Map[Action, Reward], Action, Reward, Step) => Map[Action, Reward],
+  recordHistory: Boolean = false): TabularRewardAgent = {
     val initialActionSteps = e.possibleStateActions.map { 
       case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
     }
     val initialTable = e.possibleStateActions.map { 
-      case (s, as) => s -> Map(as.map(_ -> Left(Reward(0))): _*) 
+      case (s, as) => s -> Map(as.map(_ -> Reward(0)): _*) 
     }
 
-    TabularAgent(
+    TabularRewardAgent(
       e,
       actionSelector,
       updater,
