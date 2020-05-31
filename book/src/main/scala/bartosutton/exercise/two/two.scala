@@ -187,3 +187,33 @@ def figure2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   if (debug) debugger(indexedResults)
   if (generatePlots) plotGenerator("2.5", indexedResults, false)
 }
+
+def exercise2dot9(debug: Boolean = false) = {
+  def logisiticProbabilities(actionPreferences: Map[Action, Preference]): Map[Action, Probability] = {
+    if (actionPreferences.size != 2) actionPreferences.mapValues{_ => Probability.Never}.toMap
+    else {
+      val action1 = actionPreferences.keys.head
+      val action2 = actionPreferences.keys.last
+      val beta = -(actionPreferences(action1).toDouble - actionPreferences(action2).toDouble)
+      val action1Probability = Probability.unsafe(Math.exp(-beta) / (1 + Math.exp(-beta)))
+      val action2Probability = Probability.unsafe(1 / (1 + Math.exp(-beta)))
+      actionPreferences.map { case (action, _) =>
+        if (action == action1) action -> action1Probability
+        else action -> action2Probability
+      }
+    }
+  }
+
+  val actionPreferences = Map(
+    Action("A") -> Preference(1.1),
+    Action("B") -> Preference(.99)
+  )
+
+  val softMaxResult = softMaxProbabilities(actionPreferences)
+  val logisticResult = logisiticProbabilities(actionPreferences)
+
+  println("Comparison")
+  actionPreferences.foreach { (action, _) =>
+      println(s"action: $action, softMax: ${softMaxResult(action)}, logisticResult: ${logisticResult(action)}")
+  }
+}
