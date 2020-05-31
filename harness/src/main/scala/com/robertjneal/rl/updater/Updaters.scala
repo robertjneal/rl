@@ -28,7 +28,12 @@ def average(averageMethod: (Step) => Double)(actionRewards: Map[Action, Reward],
 }
 
 def stochasticGradientAscent(α: Double, constantBaseline: Option[Double] = None)(actionPreferences: Map[Action, (Reward, Preference)], currentAction: Action, currentReward: Reward, currentStep: Step): Map[Action, (Reward, Preference)] = {
-  val actionProbabilities = softMaxProbabilities(actionPreferences.map { arp => arp._1 -> arp._2._2 })
+  val actionProbabilities = softMaxProbabilities(actionPreferences.map { 
+    case (action, rewardPreference) => action -> {
+      val (_, preference) = rewardPreference
+      preference
+    }
+  })
 
   actionPreferences.map { actionRewardPreference =>
     val (action, rewardPreference) = actionRewardPreference

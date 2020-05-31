@@ -55,14 +55,13 @@ def run(agent: TabularAgent, runs: Int, steps: Int): MeanOptimal = {
   import scala.collection.parallel.CollectionConverters._
   
   val meansOptimalsList: ParSeq[MeanOptimal] = (1 to runs).par.map { elem =>
-    val a = agent //.copy()
 
     def continueActing(actable: TabularAgent, counter: Int): TabularAgent = {
       if (counter <= 0) actable
       else continueActing(actable.act, counter - 1)
     }
 
-    val agentAtFinalState = continueActing(a, steps)
+    val agentAtFinalState = continueActing(agent, steps)
 
     MeanOptimal(
       DenseVector(agentAtFinalState.history.map((_, reward) => reward.toDouble).toArray),
@@ -73,7 +72,7 @@ def run(agent: TabularAgent, runs: Int, steps: Int): MeanOptimal = {
   val meansOptimals: MeanOptimal = meansOptimalsList.reduce((mo1: MeanOptimal, mo2: MeanOptimal) => {
     MeanOptimal(mo1.meanRewards + mo2.meanRewards, mo1.optimalActs + mo2.optimalActs)
   })
-    
+        
   MeanOptimal(
     meansOptimals.meanRewards / runs.toDouble,
     meansOptimals.optimalActs / runs.toDouble

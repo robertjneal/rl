@@ -2,6 +2,7 @@ package com.robertjneal.rl.agent
 
 import com.robertjneal.rl.Environment
 import com.robertjneal.rl.types._
+import scala.util.{ Success, Try }
 
 case class TabularRewardAgent(
   e: Environment, 

@@ -3,6 +3,7 @@ package com.robertjneal.rl.agent
 import com.robertjneal.rl.Environment
 import com.robertjneal.rl.OneState
 import com.robertjneal.rl.types._
+import scala.util.{Failure, Success, Try}
 
 case class TabularPreferenceAgent(
   e: Environment, 
@@ -19,7 +20,9 @@ case class TabularPreferenceAgent(
     val action = actionSelector(table(e.state).map { actionRewardPreference => actionRewardPreference._1 -> actionRewardPreference._2._2 })
 
     val (reward, updatedEnvironment) = e.act(action)
-    val updatedTable: Map[State, Map[Action, (Reward, Preference)]] = Map(e.state -> updater(table(e.state), action, reward, actionSteps(e.state)(action)))
+    val updates: Map[Action, (Reward, Preference)] = updater(table(e.state), action, reward, actionSteps(e.state)(action))
+
+    val updatedTable: Map[State, Map[Action, (Reward, Preference)]] = Map(e.state -> updates)
 
     val updatedHistory = if (recordHistory) {
       val appendage = (e.isOptimal(action), reward)

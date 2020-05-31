@@ -2,7 +2,9 @@ package com.robertjneal.rl
 
 import com.robertjneal.rl._
 import com.robertjneal.rl.actionselector._
+import com.robertjneal.rl.agent._
 import com.robertjneal.rl.types._
+import com.robertjneal.rl.updater._
 import org.apache.commons.math3.distribution._
 import org.junit.Test
 import org.junit.Assert._
@@ -22,19 +24,19 @@ class AgentTest {
     val possibleActions = actionRewards.map { case (a, r) => a }.toVector
     val e = BanditEnvironment(possibleActions, actionRewards)
 
-    val agent = TabularAgent.blankSlate(
+    val agent = TabularRewardAgent.blankSlate(
       e,
       εGreedy(Probability.unsafe(0.1)),
       average(sampleAverage)
     )
 
-    val result1: TabularAgent = agent.act
+    val result1: TabularRewardAgent = agent.act
 
     assertEquals(agent.e.possibleStateActions, result1.e.possibleStateActions)
     assertEquals(1, result1.actionSteps(OneState).values.map(_.toInt).sum - actionRewards.size)
     assertEquals(result1.step, result1.actionSteps(OneState).values.map(_.toInt).sum - actionRewards.size)
 
-    val result2: TabularAgent = result1.act
+    val result2: TabularRewardAgent = result1.act
 
     assertEquals(result1.e.possibleStateActions, result2.e.possibleStateActions)
     assertEquals(2, result2.actionSteps(OneState).values.map(_.toInt).sum - actionRewards.size)

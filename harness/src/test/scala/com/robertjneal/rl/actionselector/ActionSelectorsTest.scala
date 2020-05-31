@@ -2,14 +2,14 @@ package com.robertjneal.rl.actionselector
 
 import com.robertjneal.rl.OneState
 import com.robertjneal.rl.types._
+import com.robertjneal.rl.updater._
 import org.junit.Assert._
 import org.junit.Test
-import scala.annotation.tailrec
 
-class TwoTest {
+class ActionSelectorsTest {
     import scala.language.implicitConversions
 
-    private val acceptableMargin = 0.0111
+    private val acceptableMargin = 0.0123
     private val bestRewardValue = 1.9
     private val bestAction = Action(s"A$bestRewardValue")
     private val best = (bestAction, Reward(bestRewardValue))
@@ -18,22 +18,6 @@ class TwoTest {
         best,
         (Action("C=1.1"), Reward(1.1)),
     )
-
-    @tailrec
-    private def updatedActionRewards(averageMethod: (Step) => Double, actionRewardsToUpdate: Map[Action, Reward], numbers: List[Int], action: Action, originalSize: Int): Map[Action, Reward] = {
-      if (numbers.length == 0) actionRewardsToUpdate
-      else {
-        val n = originalSize - numbers.length
-        val hd::tl = numbers
-        updatedActionRewards(
-          averageMethod,
-          average(averageMethod)(actionRewardsToUpdate, action, Reward(hd.toDouble), Step(n + 1)),
-          tl,
-          action,
-          originalSize
-        )
-      }
-    }
 
     /*
     When always greedy, the best action should always be taken.
@@ -81,59 +65,6 @@ class TwoTest {
         assertEquals(expected, bestChosen, acceptableMargin)
         assertEquals(expected, best2Chosen, acceptableMargin)
         assertEquals(expected, best3Chosen, acceptableMargin)
-    }
-
-    /*
-    Sample average should be the mean
-    */
-    @Test
-    def unweightedSampleAverageTest() = {
-        val size = 101
-        val action = Action("A")
-        val numbersToAverage = List.fill(size)(scala.util.Random.nextInt(1000))
-        val actionRewards = Map((action, Reward(0)))
-        val expected = numbersToAverage.sum / size.toDouble
-
-        val finalActionRewards = updatedActionRewards(sampleAverage, actionRewards, numbersToAverage, action, numbersToAverage.length)
-
-        assertEquals(expected, finalActionRewards(action).toDouble, acceptableMargin)
-    }
-
-    /*
-    Exponential recency weighted average should equal the last number
-    "(If 1 − α = 0, then all the weight goes on the very last reward, Rn, because of the convention that 0^0 = 1.)"
-    */
-    @Test
-    def exponentialRecencyWeightedAverageTest() = {
-        val size = 101
-        val action = Action("A")
-        val orderedRewards = List.fill(size)(scala.util.Random.nextInt(1000))
-        val actionRewards = Map((action, Reward(0)))
-        val expected = orderedRewards.last.toDouble
-
-        val finalActionRewards = updatedActionRewards(exponentialRecencyWeightedAverage(1), actionRewards, orderedRewards, action, orderedRewards.length)
-
-        assertEquals(expected, finalActionRewards(action).toDouble, acceptableMargin)
-    }
-
-    /*
-    Recency weight average should equal (1-α)^n*Q1+Σ[i=1->n]α(1-α)^(n-i)*Ri
-    */
-    @Test
-    def recencyWeightedAverageTest() = {
-        val α = 0.7
-        val size = 101
-        val action = Action("A")
-        val orderedRewards = List.fill(size)(scala.util.Random.nextInt(1000))
-        val actionRewards = Map((action, Reward(0)))
-        val expected = Math.pow(1-α, size) * 0 +
-            (for (i <- 1 to size) yield {
-                α * Math.pow((1 - α), size - i) * orderedRewards(i - 1)
-            }).sum
-
-        val finalActionRewards = updatedActionRewards(exponentialRecencyWeightedAverage(α), actionRewards, orderedRewards, action, orderedRewards.length)
-
-        assertEquals(expected, finalActionRewards(action).toDouble, acceptableMargin)
     }
 
     /*
@@ -196,5 +127,127 @@ class TwoTest {
         actionRewards.keys.foreach(a => 
             assert((actionsSelected.contains(a) && a == bestAction) || actionsSelected.count(selected => selected == a) == 0)
         )
+    }
+
+    @Test
+    def softMaxProbabilities1Test() = {
+        val action1 = Action("1")
+        val action2 = Action("2")
+        val action3 = Action("3")
+        val inputExpectedOutput1 = 
+            Map(
+                action1 -> (Preference(100.1), Probability.unsafe(0.45732888)),
+                action2 -> (Preference(99.1), Probability.unsafe(0.16824189)),
+                action3 -> (Preference(99.9), Probability.unsafe(0.37442922))
+            )
+
+        val output1 = softMaxProbabilities(inputExpectedOutput1.mapValues { _._1 }.toMap)
+
+        inputExpectedOutput1.foreach {
+            (action, preferenceProbability) =>
+                val (preference, expectedProbability) = preferenceProbability
+                assertEquals(expectedProbability.toDouble, output1(action).toDouble, acceptableMargin)
+        }
+    }
+
+    /*
+    Most, by far, preferred action should be 100%
+    */
+    @Test
+    def softMaxProbabilities2Test() = {
+        val action1 = Action("1")
+        val action2 = Action("2")
+        val action3 = Action("3")
+        val inputExpectedOutput2 = 
+            Map(
+                action1 -> (Preference(10), Probability.unsafe(0.0)),
+                action2 -> (Preference(1), Probability.unsafe(0.0)),
+                action3 -> (Preference(100), Probability.unsafe(1.0))
+            )
+
+        val output1 = softMaxProbabilities(inputExpectedOutput2.mapValues { (pref, prob) => pref }.toMap)
+
+        inputExpectedOutput2.foreach {
+            (action, preferenceProbability) =>
+                val (preference, expectedProbability) = preferenceProbability
+                assertEquals(expectedProbability.toDouble, output1(action).toDouble, acceptableMargin)
+        }
+    }
+
+    /*
+    Mix of negative and positive inputs should result in probability [0, 1]
+    */
+    @Test
+    def softMaxProbabilities3Test() = {
+        val action1 = Action("1")
+        val action2 = Action("2")
+        val action3 = Action("3")
+        val input = 
+            Map(
+                action1 -> Preference(-100),
+                action2 -> Preference(1),
+                action3 -> Preference(100)
+            )
+
+        val output = softMaxProbabilities(input)
+
+        output.foreach {
+            (action, preferenceProbability) =>
+                assertTrue(preferenceProbability.toDouble >= 0 && preferenceProbability.toDouble <= 1)
+        }
+    }
+
+    /*
+    Action should be selected proportional to their softmax probabilities
+    */
+    @Test
+    def softMax1Test() = {
+        val runs = 10000
+        val action1 = Action("1")
+        val action2 = Action("2")
+        val action3 = Action("3")
+        val input1 = 
+            Map(
+                action1 -> Preference(100.1),
+                action2 -> Preference(99.1),
+                action3 -> Preference(99.9)
+            )
+
+        val expectedProbabilities = Map(
+            action1 -> Probability.unsafe(0.45732888),
+            action2 -> Probability.unsafe(0.16824189),
+            action3 -> Probability.unsafe(0.37442922)
+        )
+
+        val initialCounts: Map[Action, Int] = input1.mapValues { x => 0 }.toMap
+
+        val counts = (0 to runs).foldLeft(initialCounts) { (acc, x) =>
+            val chosenAction = softMax(input1)
+            acc.updated(chosenAction, acc(chosenAction) + 1)
+        }
+
+        expectedProbabilities.foreach { (action, probability) =>
+            assertEquals(probability.toDouble, counts(action).toDouble / runs, acceptableMargin)
+        }
+    }
+
+    /*
+    Most, by far, preferred action should always be selected
+    */
+    @Test
+    def softMax2Test() = {
+        val action1 = Action("1")
+        val action2 = Action("2")
+        val action3 = Action("3")
+        val input2 = 
+            Map(
+                action1 -> Preference(10),
+                action2 -> Preference(1),
+                action3 -> Preference(100)
+            )
+
+        (0 to 1000).foreach { x =>
+            assertEquals(action3, softMax(input2))
+        }
     }
 }
