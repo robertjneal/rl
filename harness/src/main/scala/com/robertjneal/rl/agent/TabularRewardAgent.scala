@@ -1,8 +1,10 @@
-package com.robertjneal.rl
+package com.robertjneal.rl.agent
 
+import com.robertjneal.rl.Environment
 import com.robertjneal.rl.types._
+import scala.util.{ Success, Try }
 
-case class TabularAgent(
+case class TabularRewardAgent(
   e: Environment, 
   actionSelector: (Step, Map[State, Map[Action, Step]]) => Map[Action, Reward] => Action, 
   updater: (Map[Action, Reward], Action, Reward, Step) => Map[Action, Reward],
@@ -11,10 +13,9 @@ case class TabularAgent(
   table: Map[State, Map[Action, Reward]],
   recordHistory: Boolean = false,
   history: Array[(OptimalAct, Reward)] = Array.empty
-  ) {  
-  private val mutableHistory: Array[(OptimalAct, Reward)] = Array.empty
+  ) extends TabularAgent {  
 
-  def act: TabularAgent = {
+  def act: TabularRewardAgent = {
     val action = actionSelector(step, actionSteps)(table(e.state))
 
     val (reward, updatedEnvironment) = e.act(action)
@@ -32,7 +33,7 @@ case class TabularAgent(
       )
     )
 
-    TabularAgent(
+    TabularRewardAgent(
       updatedEnvironment,
       actionSelector,
       updater,
@@ -45,11 +46,11 @@ case class TabularAgent(
   }
 }
 
-object TabularAgent {
+object TabularRewardAgent {
   def blankSlate(e: Environment, 
-  actionSelector: (Step, Map[State, Map[Action, Step]]) => Map[Action, Reward] => Action,
+  actionSelector: (Step, Map[State, Map[Action, Step]]) => Map[Action, Reward] => Action, 
   updater: (Map[Action, Reward], Action, Reward, Step) => Map[Action, Reward],
-recordHistory: Boolean = false): TabularAgent = {
+  recordHistory: Boolean = false): TabularRewardAgent = {
     val initialActionSteps = e.possibleStateActions.map { 
       case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
     }
@@ -57,7 +58,7 @@ recordHistory: Boolean = false): TabularAgent = {
       case (s, as) => s -> Map(as.map(_ -> Reward(0)): _*) 
     }
 
-    TabularAgent(
+    TabularRewardAgent(
       e,
       actionSelector,
       updater,

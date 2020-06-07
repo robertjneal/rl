@@ -1,6 +1,7 @@
 package com.robertjneal.rl.testbed
 
 import com.robertjneal.rl._
+import com.robertjneal.rl.agent._
 import com.robertjneal.rl.types._
 import org.apache.commons.math3.distribution._
 import org.junit.Test
@@ -27,7 +28,7 @@ class testbedTest {
         actionRewards(currentAction).toDouble + ( error.toDouble / currentStep.toInt.toDouble)
       ))
     }
-    val agent = TabularAgent.blankSlate(environment, pickBest, sampleAverage, true)
+    val agent = TabularRewardAgent.blankSlate(environment, pickBest, sampleAverage, true)
 
     val result: MeanOptimal = run(agent, 2000, 1000)
 
