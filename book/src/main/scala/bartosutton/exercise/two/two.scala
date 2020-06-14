@@ -154,7 +154,7 @@ def figure2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     (0.1, Some(0D), "α=0.1, no baseline"),
     (0.1, None, "α=0.1, baseline"),
     (0.4, Some(0D), "α=0.4, no baseline"),
-    (0.4, None, "α=0.9, baseline")
+    (0.4, None, "α=0.4, baseline")
   )
 
   val environment = testbed.tenArmEnvironment(4D)

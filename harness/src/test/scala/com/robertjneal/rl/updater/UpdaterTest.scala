@@ -92,7 +92,7 @@ class UpdaterTest {
         actionRewardPreference3
       )
 
-      val updated = stochasticGradientAscent(α)(actionRewardPreferences, Action("A"), Reward(5), Step(100))
+      val updated = stochasticGradientAscent(α)(actionRewardPreferences, Action("A"), Reward(5), Map(Action("A") -> Step(100), Action("B") -> Step(1), Action("C") -> Step(1)))
       updated.foreach {
         (action, rewardPreference) =>
           val (_, preference) = rewardPreference
@@ -117,7 +117,7 @@ class UpdaterTest {
         actionRewardPreference3
       )
 
-      val updated = stochasticGradientAscent(α)(actionRewardPreferences, Action("B"), Reward(1), Step(10))
+      val updated = stochasticGradientAscent(α)(actionRewardPreferences, Action("B"), Reward(1), Map(Action("A") -> Step(1), Action("B") -> Step(10), Action("C") -> Step(1)))
       updated.foreach {
         (action, rewardPreference) =>
           val (r, preference) = rewardPreference
@@ -145,7 +145,7 @@ class UpdaterTest {
         actionRewardPreference3
       )
 
-      val updated = stochasticGradientAscent(α)(actionRewardPreferences, Action("B"), Reward(1), Step(10))
+      val updated = stochasticGradientAscent(α)(actionRewardPreferences, Action("B"), Reward(1), Map(Action("A") -> Step(1), Action("B") -> Step(10), Action("C") -> Step(1)))
       updated.foreach {
         (action, rewardPreference) =>
           val (r, preference) = rewardPreference

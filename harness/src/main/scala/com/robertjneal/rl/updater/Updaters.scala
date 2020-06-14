@@ -35,7 +35,7 @@ def stochasticGradientAscent(α: Double, constantBaseline: Option[Double] = None
     }
   })
 
-  val totalSteps = currentSteps.values.map(_.toInt).sum
+  val totalSteps = currentSteps.values.map(_.toInt - 1).sum + 1
   val averageReward: Double = actionPreferences.map { case (action, rewardPreference) => {
     val (reward, _) = rewardPreference
     reward.toDouble * (currentSteps(action).toInt / totalSteps.toDouble)
