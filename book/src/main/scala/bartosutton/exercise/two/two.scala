@@ -89,8 +89,8 @@ def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Bool
 
 def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
   val εAndBiases = Vector(
-    (Probability.unsafe(0.1), 0),
-    (Probability.unsafe(0.1), 5)
+    (Probability.unsafe(0.1), 0D),
+    (Probability.unsafe(0.1), 5D)
   )
   val environment = testbed.tenArmEnvironment()
 
@@ -154,12 +154,12 @@ def figure2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     (0.1, Some(0D), "α=0.1, no baseline"),
     (0.1, None, "α=0.1, baseline"),
     (0.4, Some(0D), "α=0.4, no baseline"),
-    (0.4, None, "α=0.4, baseline")
+    (0.4, None, "α=0.9, baseline")
   )
 
-  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = fs.map((stepSize, baseline, name) => { 
-    val environment = testbed.tenArmEnvironment(4D)
+  val environment = testbed.tenArmEnvironment(4D)
 
+  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = fs.map((stepSize, baseline, name) => { 
     val initialActionSteps = environment.possibleStateActions.map { 
       case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
     }
@@ -190,7 +190,7 @@ def figure2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
 
 def exercise2dot9(debug: Boolean = false) = {
   def logisiticProbabilities(actionPreferences: Map[Action, Preference]): Map[Action, Probability] = {
-    if (actionPreferences.size != 2) actionPreferences.mapValues{_ => Probability.Never}.toMap
+    if (actionPreferences.size != 2) actionPreferences.view.mapValues{_ => Probability.Never}.toMap
     else {
       val action1 = actionPreferences.keys.head
       val action2 = actionPreferences.keys.last
@@ -216,4 +216,134 @@ def exercise2dot9(debug: Boolean = false) = {
   actionPreferences.foreach { (action, _) =>
       println(s"action: $action, softMax: ${softMaxResult(action)}, logisticResult: ${logisticResult(action)}")
   }
+}
+
+def figure2dot6(debug: Boolean = false) = {
+  val runs = 2000
+  val steps = 1000
+  val εs = List(1/128D, 1/64D, 1/32D, 1/16D, 1/8D, 1/4D).map(Probability.unsafe)
+
+  val environment = testbed.tenArmEnvironment()
+
+  val A: (String, Seq[(Double, Double)]) = (
+    "ε-greedy", 
+    εs.map{ ε => {
+      val agent = TabularRewardAgent.blankSlate(
+        environment,
+        εGreedy(ε),
+        average(sampleAverage),
+        true
+      )
+      val result = testbed.run(
+        agent,
+        runs,
+        steps
+      )
+
+      (ε.toDouble, result.meanRewards.sum / steps.toDouble)
+    }}
+  )
+
+  val αs: List[Double] = List(1/32D, 1/16D, 1/8D, 1/4D, 1/2D, 1, 2, 3)
+
+  val B: (String, Seq[(Double, Double)]) = (
+    "stochastic gradient ascent", 
+    αs.map{ α => {
+      val agent = TabularPreferenceAgent.blankSlate(
+        environment,
+        softMax,
+        stochasticGradientAscent(α, None),
+        true
+      )
+      val result = testbed.run(
+        agent,
+        runs,
+        steps
+      )
+
+      if (debug) {
+        println("stochastic gradient")
+        println(s"α: $α")
+        println(s"mean reward: ${result.meanRewards.sum / steps.toDouble}")
+        (0 to 20).foreach { i =>
+          println(result.meanRewards(i))
+        }
+      }
+
+      (α, result.meanRewards.sum / steps.toDouble)
+    }}
+  )
+
+  val cs: List[Double] = List(1/16D, 1/8D, 1/4D, 1/2D, 1, 2, 3, 4)
+
+  val C: (String, Seq[(Double, Double)]) = (
+    "UCB", 
+    cs.map{ c => {
+      val agent = TabularRewardAgent.blankSlate(
+        environment,
+        upperConfidenceBound(c, OneState),
+        average(sampleAverage),
+        true
+      )
+      val result = testbed.run(
+        agent,
+        runs,
+        steps
+      )
+
+      (c, result.meanRewards.sum / steps.toDouble)
+    }}
+  )
+
+  val is: List[Double] = List(1/4D, 1/2D, 1, 2, 3, 4)
+
+  val D: (String, Seq[(Double, Double)]) = (
+    "ε-greedy(0.1)", 
+    is.map{ i => {
+      val initialActionSteps = environment.possibleStateActions.map { 
+        case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
+      }
+  
+      val initialTable = environment.possibleStateActions.map { 
+        case (s, as) => s -> Map(as.map(_ -> Reward(i)): _*) 
+      } 
+      val agent = TabularRewardAgent(
+        environment,
+        εGreedy(Probability.unsafe(0.1)),
+        average(sampleAverage),
+        Step(1),
+        initialActionSteps,
+        initialTable,
+        true
+      )
+
+      val result = testbed.run(
+        agent,
+        runs,
+        steps
+      )
+
+      (i, result.meanRewards.sum / steps.toDouble)
+    }}
+  )
+
+  import breeze.plot._
+
+  val f = breeze.plot.Figure()
+  val p = f.subplot(0)
+  p.legend = true
+  p.xlabel = "Avg reward over first 1000 steps"
+  p.ylabel = "parameter (ε, α, c, Q0)"
+  //p.ylim(Math.min(0D, dvs.values.minBy(_.min).min), Math.max(0D, dvs.values.maxBy(_.max).max))
+  
+  List(A, B, C, D).foreach { case (name, xsys) =>
+    p += plot(
+      x = xsys.map((x, y) => x), 
+      y = xsys.map((x, y) => y), 
+      name = name
+    )
+  }
+  
+  p.logScaleX = true
+  f.saveas(s"figure 2.6.png")
 }
