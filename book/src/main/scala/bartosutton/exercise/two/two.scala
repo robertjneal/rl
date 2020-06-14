@@ -332,8 +332,8 @@ def figure2dot6(debug: Boolean = false) = {
   val f = breeze.plot.Figure()
   val p = f.subplot(0)
   p.legend = true
-  p.xlabel = "Avg reward over first 1000 steps"
-  p.ylabel = "parameter (ε, α, c, Q0)"
+  p.ylabel = "Avg reward over first 1000 steps"
+  p.xlabel = "parameter (ε, α, c, Q0)"
   //p.ylim(Math.min(0D, dvs.values.minBy(_.min).min), Math.max(0D, dvs.values.maxBy(_.max).max))
   
   List(A, B, C, D).foreach { case (name, xsys) =>
@@ -346,4 +346,144 @@ def figure2dot6(debug: Boolean = false) = {
   
   p.logScaleX = true
   f.saveas(s"figure 2.6.png")
+}
+
+
+def exercise2dot11(runs: Integer = 2000, steps: Integer = 200000, includeεGreedy: Boolean = false, includeStochasticGradientAscent: Boolean = false, includeUpperConfidenceBound: Boolean = false, includeBiasedεGreedy: Boolean = false, debug: Boolean = false) = {
+
+  val actions: Vector[Action] = Range(0, 9).map(n => Action(n.toString)).toVector
+  val actionValues: Map[Action, RandomReward] = actions.map(a =>
+    (a, (NonstationaryReward.randomStart))
+  ).toMap
+
+  val environment = testbed.tenArmEnvironment().copy(actionRewards = actionValues)
+
+  val εs = List(1/128D,  1/32D, 0.1, 1/4D).map(Probability.unsafe)
+  def A: (String, Seq[(Double, Double)]) = (
+    "ε-greedy", 
+    εs.map{ ε => {
+      val agent = TabularRewardAgent.blankSlate(
+        environment,
+        εGreedy(ε),
+        average(exponentialRecencyWeightedAverage(0.1)),
+        true
+      )
+      val result = testbed.run(
+        agent,
+        runs,
+        steps
+      )
+
+      (ε.toDouble, result.meanRewards.slice(steps / 2, steps.toInt, 1).sum / (steps / 2).toDouble)
+    }}
+  )
+
+  val αs: List[Double] = List(1/32D, 1/16D, 1/8D, 1/4D, 1/2D, 1, 2, 3)
+
+  def B: (String, Seq[(Double, Double)]) = (
+    "stochastic gradient ascent", 
+    αs.map{ α => {
+      val agent = TabularPreferenceAgent.blankSlate(
+        environment,
+        softMax,
+        stochasticGradientAscent(α, None),
+        true
+      )
+      val result = testbed.run(
+        agent,
+        runs,
+        steps
+      )
+
+      if (debug) {
+        println("stochastic gradient")
+        println(s"α: $α")
+        println(s"mean reward: ${result.meanRewards.sum / steps.toDouble}")
+        (0 to 20).foreach { i =>
+          println(result.meanRewards(i))
+        }
+      }
+
+      (α, result.meanRewards.slice(steps / 2, steps.toInt, 1).sum / (steps / 2).toDouble)
+    }}
+  )
+
+  val cs: List[Double] = List(1/16D, 1/8D, 1/4D, 1/2D, 1, 2, 3, 4)
+
+  def C: (String, Seq[(Double, Double)]) = (
+    "UCB", 
+    cs.map{ c => {
+      val agent = TabularRewardAgent.blankSlate(
+        environment,
+        upperConfidenceBound(c, OneState),
+        average(exponentialRecencyWeightedAverage(0.1)),
+        true
+      )
+      val result = testbed.run(
+        agent,
+        runs,
+        steps
+      )
+
+      (c, result.meanRewards.slice(steps / 2, steps.toInt, 1).sum / (steps / 2).toDouble)
+    }}
+  )
+
+  val is: List[Double] = List(1/4D, 1/2D, 1, 2, 3, 4)
+
+  def D: (String, Seq[(Double, Double)]) = (
+    "ε-greedy(0.1)", 
+    is.map{ i => {
+      val initialActionSteps = environment.possibleStateActions.map { 
+        case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
+      }
+  
+      val initialTable = environment.possibleStateActions.map { 
+        case (s, as) => s -> Map(as.map(_ -> Reward(i)): _*) 
+      } 
+      val agent = TabularRewardAgent(
+        environment,
+        εGreedy(Probability.unsafe(0.1)),
+        average(exponentialRecencyWeightedAverage(0.1)),
+        Step(1),
+        initialActionSteps,
+        initialTable,
+        true
+      )
+
+      val result = testbed.run(
+        agent,
+        runs,
+        steps
+      )
+
+      (i, result.meanRewards.slice(steps / 2, steps.toInt, 1).sum / (steps / 2).toDouble)
+    }}
+  )
+
+  val list = 
+    (if (includeεGreedy) List(A) else List.empty) ++
+    (if (includeStochasticGradientAscent) List(B) else List.empty) ++
+    (if (includeUpperConfidenceBound) List(C) else List.empty) ++
+    (if (includeBiasedεGreedy) List(D) else List.empty)
+  
+  import breeze.plot._
+
+  val f = breeze.plot.Figure()
+  val p = f.subplot(0)
+  p.legend = true
+  p.ylabel = "Avg reward over last 100,000 steps"
+  p.xlabel = "parameter (ε, α, c, Q0)"
+  //p.ylim(Math.min(0D, dvs.values.minBy(_.min).min), Math.max(0D, dvs.values.maxBy(_.max).max))
+
+  list.foreach { case (name, xsys) =>
+    p += plot(
+      x = xsys.map((x, y) => x), 
+      y = xsys.map((x, y) => y), 
+      name = name
+    )
+  }
+  
+  p.logScaleX = true
+  f.saveas(s"exercise2.11.png")
 }
