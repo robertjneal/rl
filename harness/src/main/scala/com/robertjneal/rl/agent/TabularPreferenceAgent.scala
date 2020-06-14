@@ -8,7 +8,7 @@ import scala.util.{Failure, Success, Try}
 case class TabularPreferenceAgent(
   e: Environment, 
   actionSelector: Map[Action, Preference] => Action, 
-  updater: (Map[Action, (Reward, Preference)], Action, Reward, Step) => Map[Action, (Reward, Preference)],
+  updater: (Map[Action, (Reward, Preference)], Action, Reward, Map[Action, Step]) => Map[Action, (Reward, Preference)],
   step: Step,
   actionSteps: Map[State, Map[Action, Step]],
   table: Map[State, Map[Action, (Reward, Preference)]],
@@ -20,7 +20,7 @@ case class TabularPreferenceAgent(
     val action = actionSelector(table(e.state).map { actionRewardPreference => actionRewardPreference._1 -> actionRewardPreference._2._2 })
 
     val (reward, updatedEnvironment) = e.act(action)
-    val updates: Map[Action, (Reward, Preference)] = updater(table(e.state), action, reward, actionSteps(e.state)(action))
+    val updates: Map[Action, (Reward, Preference)] = updater(table(e.state), action, reward, actionSteps(e.state))
 
     val updatedTable: Map[State, Map[Action, (Reward, Preference)]] = Map(e.state -> updates)
 
@@ -52,7 +52,7 @@ case class TabularPreferenceAgent(
 object TabularPreferenceAgent {
   def blankSlate(e: Environment, 
   actionSelector: Map[Action, Preference] => Action, 
-  updater: (Map[Action, (Reward, Preference)], Action, Reward, Step) => Map[Action, (Reward, Preference)],
+  updater: (Map[Action, (Reward, Preference)], Action, Reward, Map[Action, Step]) => Map[Action, (Reward, Preference)],
   recordHistory: Boolean = false): TabularPreferenceAgent = {
     val initialActionSteps = e.possibleStateActions.map { 
       case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 

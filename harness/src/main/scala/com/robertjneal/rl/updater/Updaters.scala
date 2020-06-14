@@ -27,7 +27,7 @@ def average(averageMethod: (Step) => Double)(actionRewards: Map[Action, Reward],
   ))
 }
 
-def stochasticGradientAscent(α: Double, constantBaseline: Option[Double] = None)(actionPreferences: Map[Action, (Reward, Preference)], currentAction: Action, currentReward: Reward, currentStep: Step): Map[Action, (Reward, Preference)] = {
+def stochasticGradientAscent(α: Double, constantBaseline: Option[Double] = None)(actionPreferences: Map[Action, (Reward, Preference)], currentAction: Action, currentReward: Reward, currentSteps: Map[Action, Step]): Map[Action, (Reward, Preference)] = {
   val actionProbabilities = softMaxProbabilities(actionPreferences.map { 
     case (action, rewardPreference) => action -> {
       val (_, preference) = rewardPreference
@@ -35,18 +35,24 @@ def stochasticGradientAscent(α: Double, constantBaseline: Option[Double] = None
     }
   })
 
+  val totalSteps = currentSteps.values.map(_.toInt - 1).sum + 1
+  val averageReward: Double = actionPreferences.map { case (action, rewardPreference) => {
+    val (reward, _) = rewardPreference
+    reward.toDouble * (currentSteps(action).toInt / totalSteps.toDouble)
+  }}.sum
+
   actionPreferences.map { actionRewardPreference =>
     val (action, rewardPreference) = actionRewardPreference
     val (reward, preference) = rewardPreference
     if (action == currentAction) {
       action -> (
-        Reward(updateAverage(reward.toDouble, currentStep, currentReward.toDouble, sampleAverage)),
-        Preference(preference.toDouble + α * (currentReward.toDouble - constantBaseline.getOrElse(reward.toDouble)) * (1 - actionProbabilities(action).toDouble))
+        Reward(updateAverage(reward.toDouble, currentSteps(action), currentReward.toDouble, sampleAverage)),
+        Preference(preference.toDouble + α * (currentReward.toDouble - constantBaseline.getOrElse(averageReward)) * (1 - actionProbabilities(action).toDouble))
       )
     } else {
       action -> (
         reward,
-        Preference(preference.toDouble - α * (currentReward.toDouble - constantBaseline.getOrElse(reward.toDouble)) * actionProbabilities(action).toDouble)
+        Preference(preference.toDouble - α * (currentReward.toDouble - constantBaseline.getOrElse(averageReward)) * actionProbabilities(action).toDouble)
       )
     }
   }
