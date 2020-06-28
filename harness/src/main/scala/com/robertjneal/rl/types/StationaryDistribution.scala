@@ -1,5 +1,6 @@
 package com.robertjneal.rl.types
 
+import com.robertjneal.rl.types.goal.Reward
 import org.apache.commons.math3.distribution._
 
 class StationaryDistribution(distribution: AbstractRealDistribution) extends RandomReward {

@@ -1,6 +1,7 @@
 package com.robertjneal.rl
 
 import com.robertjneal.rl.types._
+import com.robertjneal.rl.types.goal._
 
 trait Environment(val possibleStateActions: Map[State, Vector[Action]], val state: State) {
   def act(a: Action): (Reward, Environment)
