@@ -1,6 +1,7 @@
 package com.robertjneal.rl.updater
 
 import com.robertjneal.rl.types._
+import com.robertjneal.rl.types.goal._
 import org.junit.Assert._
 import org.junit.Test
 import scala.annotation.tailrec
@@ -78,83 +79,77 @@ class UpdaterTest {
     }
 
     /*
-    If the reward is higher than its previous average, its preference should go up
+    If the reward is higher than the previous average reward, its preference should go up
     */
     @Test
     def stochasticGradientAscentHigherTest() = {
       val α = 0.1
-      val actionRewardPreference1 = (Action("A") -> (Reward(1), Preference(100)))
-      val actionRewardPreference2 = (Action("B") -> (Reward(2), Preference(120)))
-      val actionRewardPreference3 = (Action("C") -> (Reward(3), Preference(150)))
-      val actionRewardPreferences = Map(
-        actionRewardPreference1,
-        actionRewardPreference2,
-        actionRewardPreference3
+      val actionPreference1 = (Action("A") -> Preference(100))
+      val actionPreference2 = (Action("B") -> Preference(120))
+      val actionPreference3 = (Action("C") -> Preference(150))
+      val actionPreferences = Map(
+        actionPreference1,
+        actionPreference2,
+        actionPreference3
       )
+      val averageReward = Reward(3)
 
-      val updated = stochasticGradientAscent(α)(actionRewardPreferences, Action("A"), Reward(5), Map(Action("A") -> Step(100), Action("B") -> Step(1), Action("C") -> Step(1)))
+      val updated = stochasticGradientAscent(α)(actionPreferences, Action("A"), Reward(5), Step(1), Some(averageReward))
       updated.foreach {
-        (action, rewardPreference) =>
-          val (_, preference) = rewardPreference
-          val (_, initialPreference) = actionRewardPreferences(action)
+        (action, preference) =>
+          val initialPreference = actionPreferences(action)
           if (action == Action("A")) assertTrue(preference > initialPreference)
           else assertTrue(preference <= initialPreference)
       }
     }
 
     /*
-    If the reward is lower than its previous average, its preference should go down
+    If the reward is lower than the previous average reward, its preference should go down
     */
     @Test
     def stochasticGradientAscentLowerTest() = {
       val α = 0.1
-      val actionRewardPreference1 = (Action("A") -> (Reward(1), Preference(100)))
-      val actionRewardPreference2 = (Action("B") -> (Reward(2), Preference(120)))
-      val actionRewardPreference3 = (Action("C") -> (Reward(3), Preference(150)))
-      val actionRewardPreferences = Map(
-        actionRewardPreference1,
-        actionRewardPreference2,
-        actionRewardPreference3
+      val actionPreference1 = (Action("A") -> Preference(100))
+      val actionPreference2 = (Action("B") -> Preference(120))
+      val actionPreference3 = (Action("C") -> Preference(150))
+      val actionPreferences = Map(
+        actionPreference1,
+        actionPreference2,
+        actionPreference3
       )
+      val averageReward = Reward(3)
 
-      val updated = stochasticGradientAscent(α)(actionRewardPreferences, Action("B"), Reward(1), Map(Action("A") -> Step(1), Action("B") -> Step(10), Action("C") -> Step(1)))
+      val updated = stochasticGradientAscent(α)(actionPreferences, Action("B"), Reward(2), Step(1), Some(averageReward))
       updated.foreach {
-        (action, rewardPreference) =>
-          val (r, preference) = rewardPreference
-          val (ir, initialPreference) = actionRewardPreferences(action)
-          println(s"action: $action")
-          println(s"ir: $ir, cr: $r")
-          println(s"ip: $initialPreference, cp: $preference")
+        (action, preference) =>
+          val initialPreference = actionPreferences(action)
           if (action == Action("B")) assertTrue(preference < initialPreference)
           else assertTrue(preference >= initialPreference)
       }
     }
 
     /*
-    If the reward is equalt to its previous average, the preferences should remain unchanged
+    If the reward is equal to the previous average reward, the preferences should remain unchanged
     */
     @Test
     def stochasticGradientAscentEqualTest() = {
       val α = 0.1
-      val actionRewardPreference1 = (Action("A") -> (Reward(1), Preference(100)))
-      val actionRewardPreference2 = (Action("B") -> (Reward(2), Preference(120)))
-      val actionRewardPreference3 = (Action("C") -> (Reward(3), Preference(150)))
-      val actionRewardPreferences = Map(
-        actionRewardPreference1,
-        actionRewardPreference2,
-        actionRewardPreference3
+      val actionPreference1 = (Action("A") -> Preference(100))
+      val actionPreference2 = (Action("B") -> Preference(120))
+      val actionPreference3 = (Action("C") -> Preference(150))
+      val actionPreferences = Map(
+        actionPreference1,
+        actionPreference2,
+        actionPreference3
       )
+      val averageReward = Reward(3)
 
-      val updated = stochasticGradientAscent(α)(actionRewardPreferences, Action("B"), Reward(1), Map(Action("A") -> Step(1), Action("B") -> Step(10), Action("C") -> Step(1)))
+      val updated = stochasticGradientAscent(α)(actionPreferences, Action("B"), Reward(3), Step(1), Some(averageReward))
       updated.foreach {
-        (action, rewardPreference) =>
-          val (r, preference) = rewardPreference
-          val (ir, initialPreference) = actionRewardPreferences(action)
-          println(s"action: $action")
-          println(s"ir: $ir, cr: $r")
-          println(s"ip: $initialPreference, cp: $preference")
-          if (action == Action("B")) assertTrue(preference < initialPreference)
-          else assertTrue(preference >= initialPreference)
+        (action, preference) =>
+          val initialPreference = actionPreferences(action)
+          if (action == Action("B")) assertEquals(preference, initialPreference)
+          else assertEquals(preference, initialPreference)
       }
     }
 }

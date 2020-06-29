@@ -5,6 +5,7 @@ object Step {
   def apply(i: Int): Step = i 
 
   implicit class StepOps(val self: Step) extends AnyVal {
+    def +(s2: Step): Step = self + s2
     def toInt: Int = self
     def increment: Step = self + 1
   }

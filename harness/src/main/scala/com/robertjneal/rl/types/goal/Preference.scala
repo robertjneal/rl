@@ -1,4 +1,4 @@
-package com.robertjneal.rl.types
+package com.robertjneal.rl.types.goal
 
 opaque type Preference = Double
 object Preference {

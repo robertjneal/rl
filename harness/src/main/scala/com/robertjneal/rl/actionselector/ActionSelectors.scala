@@ -1,6 +1,7 @@
 package com.robertjneal.rl.actionselector
 
 import com.robertjneal.rl.types._
+import com.robertjneal.rl.types.goal._
 import scala.util.Random
 
 def softMaxProbabilities(actionPreferences: Map[Action, Preference]): Map[Action, Probability] = {

@@ -2,6 +2,7 @@ package com.robertjneal.rl.actionselector
 
 import com.robertjneal.rl.OneState
 import com.robertjneal.rl.types._
+import com.robertjneal.rl.types.goal._
 import com.robertjneal.rl.updater._
 import org.junit.Assert._
 import org.junit.Test

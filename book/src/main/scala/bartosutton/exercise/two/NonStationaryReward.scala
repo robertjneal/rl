@@ -2,6 +2,7 @@
 package bartosutton.exercise.two
 
 import com.robertjneal.rl.types._
+import com.robertjneal.rl.types.goal._
 import org.apache.commons.math3.distribution._
 
 class NonstationaryReward(val trueReward: Reward) extends RandomReward {

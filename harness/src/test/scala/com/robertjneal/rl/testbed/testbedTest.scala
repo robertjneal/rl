@@ -3,6 +3,7 @@ package com.robertjneal.rl.testbed
 import com.robertjneal.rl._
 import com.robertjneal.rl.agent._
 import com.robertjneal.rl.types._
+import com.robertjneal.rl.types.goal._
 import org.apache.commons.math3.distribution._
 import org.junit.Test
 import org.junit.Assert._
@@ -21,14 +22,14 @@ class testbedTest {
     def pickBest(step: Step, actionsSteps: Map[State, Map[Action, Step]])(map: Map[Action, Reward]): Action = {
       map.maxBy(_._2.toDouble)._1
     }
-    def sampleAverage(actionRewards: Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step): 
+    def sampleAverage(actionRewards: Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step, averageReward: Option[Reward] = None): 
     Map[Action, Reward] = {
       val error = currentReward - actionRewards(currentAction)
       actionRewards.updated(currentAction, Reward(
         actionRewards(currentAction).toDouble + ( error.toDouble / currentStep.toInt.toDouble)
       ))
     }
-    val agent = TabularRewardAgent.blankSlate(environment, pickBest, sampleAverage, true)
+    val agent = TabularAgent.rewardBlankSlate(environment, pickBest, sampleAverage, true)
 
     val result: MeanOptimal = run(agent, 2000, 1000)
 

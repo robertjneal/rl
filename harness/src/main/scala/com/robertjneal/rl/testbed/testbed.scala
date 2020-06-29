@@ -50,13 +50,13 @@ def tenArmEnvironment(μ: Double = 0D): BanditEnvironment = {
   environment
 }
 
-def run(agent: TabularAgent, runs: Int, steps: Int): MeanOptimal = {
+def run[A](agent: TabularAgent[A], runs: Int, steps: Int): MeanOptimal = {
   import scala.collection.parallel.ParSeq
   import scala.collection.parallel.CollectionConverters._
   
   val meansOptimalsList: ParSeq[MeanOptimal] = (1 to runs).par.map { elem =>
 
-    def continueActing(actable: TabularAgent, counter: Int): TabularAgent = {
+    def continueActing(actable: TabularAgent[A], counter: Int): TabularAgent[A] = {
       if (counter <= 0) actable
       else continueActing(actable.act, counter - 1)
     }
