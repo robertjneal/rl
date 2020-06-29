@@ -2,7 +2,7 @@
 
 All images are generated using this library.
 
-### Exercise 2.1
+## Exercise 2.1
 
 In Exercise 2.1 we're asked what the probability is that the greedy action 
 is selected in a 2-armed bandit with ε=0.5. Presumably the question is of 
@@ -15,7 +15,7 @@ Thus each of the arms will be selected 50% of the exploration time, which
 means the greedy arm will be selected 0.5 * 0.5 of the exploration time, or 
 0.25. Add that to the greedy 0.5 and you get 0.75.
 
-### Exercise 2.2
+## Exercise 2.2
 
 Exercise 2.2 is a walk through a concrete set of steps where we want to 
 see if it's possible to tell whether the action was selected as part of 
@@ -66,7 +66,7 @@ and thus must have been selected during exploration.
 
 A<sub>5</sub> is exploratory.
 
-### Figure 2.2
+## Figure 2.2
 
 In Figure 2.2 we see two graphs. The first shows the average reward for 
 three different parameters of the ε-greedy algorithm. This is reproduced 
@@ -75,7 +75,27 @@ here using the Scala 3 reinforcement learning harness.
 [![Figure 2.2 Rewards](figure2.2-rewards.png)]
 [![Figure 2.2 Optimal Acts](figure2.2-optimal-acts.png)]
 
-### Exercise 2.5
+## Exercise 2.3
+
+In this exercise we're asked about the parameterizations used in Figure 
+2.2. Which will be best in the long run, and how much better?
+
+We know that the lower the value of ε, where ε > 0, the better long term 
+probability of selecting the best action, because 1-ε is the probability 
+of selecting the best action; and with some amount of exploration, i.e., 
+ε > 0, all arms will be explored. 
+
+Thus ε=0.01 will have the highest probability of selecting the best action. 
+That also means it will give us the best long term reward, since in the 
+long term it will select the best action the most (99.91% of the time vs. 
+99.1% of the time). Moreover, ε=0 will often get stuck on a suboptimal action.
+
+How much better will it be? Compared to ε=0.1, it will select the best 
+action 0.81% more. It will also select the other actions 0.81% fewer times. 
+So the improvement is (0.81 * R<sub>best</sub> - 
+0.81 * avg(R<sub>other</sub>)).
+
+## Exercise 2.5
 
 Exercise 2.5 asks us to generate plots like those in Figure 2.2 except 
 for a non-stationary problem. We are supposed to compare the sample 
