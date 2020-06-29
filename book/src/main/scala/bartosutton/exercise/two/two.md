@@ -72,8 +72,8 @@ In Figure 2.2 we see two graphs. The first shows the average reward for
 three different parameters of the ε-greedy algorithm. This is reproduced 
 here using the Scala 3 reinforcement learning harness.
 
-[![Figure 2.2 Rewards](figure2.2-rewards.png)]
-[![Figure 2.2 Optimal Acts](figure2.2-optimal-acts.png)]
+![Figure 2.2 Rewards](figure2.2-rewards.png)
+![Figure 2.2 Optimal Acts](figure2.2-optimal-acts.png)
 
 ## Exercise 2.3
 
@@ -101,5 +101,5 @@ Exercise 2.5 asks us to generate plots like those in Figure 2.2 except
 for a non-stationary problem. We are supposed to compare the sample 
 average method with other averaging methods.
 
-[![Exercise 2.5 Rewards](exercise2.5-rewards.png)]
-[![Exercise 2.5 Optimal Acts](exercise2.5-optimal-acts.png)]
+![Exercise 2.5 Rewards](exercise2.5-rewards.png)
+![Exercise 2.5 Optimal Acts](exercise2.5-optimal-acts.png)
