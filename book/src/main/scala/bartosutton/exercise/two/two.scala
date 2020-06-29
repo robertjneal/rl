@@ -20,8 +20,9 @@ def debugger(indexedResults: Seq[((String, DenseVector[Double]), (String, DenseV
 
 def plotGenerator(prefix: String, indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))], plotMeanRewards: Boolean = true): Unit = {
   val (meanRewards, optimalActs) = indexedResults.unzip
-  if (plotMeanRewards) testbed.generatePlot(meanRewards.toMap, s"$prefix ${meanRewards.head._1}", "mean reward")
-  testbed.generatePlot(optimalActs.toMap, s"$prefix ${optimalActs.head._1}", "% optimal acts")
+  val path = "src/main/scala/bartosutton/exercise/two/"
+  if (plotMeanRewards) testbed.generatePlot(meanRewards.toMap, path, s"$prefix-rewards", "mean reward")
+  testbed.generatePlot(optimalActs.toMap, path, s"$prefix-optimal-acts", "% optimal acts", percentage=true)
 }
 
 def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
@@ -48,7 +49,7 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   })
 
   if (debug) debugger(indexedResults)
-  if (generatePlots) plotGenerator("2.2", indexedResults)
+  if (generatePlots) plotGenerator("figure2.2", indexedResults)
 }
 
 def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
@@ -84,7 +85,7 @@ def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Bool
 
   if (debug) debugger(indexedResults)
 
-  if (generatePlots) plotGenerator("2.5", indexedResults)
+  if (generatePlots) plotGenerator("exercise2.5", indexedResults)
 }
 
 def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {

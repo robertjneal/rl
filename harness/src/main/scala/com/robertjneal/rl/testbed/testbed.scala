@@ -79,7 +79,7 @@ def run(agent: TabularAgent, runs: Int, steps: Int): MeanOptimal = {
   )  
 }  
 
-def generatePlot(dvs: Map[String, DenseVector[Double]], fileName: String, ylabel: String, xlabel: String = "steps", percentage: Boolean = false): Unit = {
+def generatePlot(dvs: Map[String, DenseVector[Double]], path: String, fileName: String, ylabel: String, xlabel: String = "steps", percentage: Boolean = false): Unit = {
   import breeze.plot._
 
   val f = breeze.plot.Figure()
@@ -98,6 +98,7 @@ def generatePlot(dvs: Map[String, DenseVector[Double]], fileName: String, ylabel
       y = dv.toVector, 
       name = name)
   }
-  f.saveas(s"$fileName$ylabel.png")
+  p.setYAxisDecimalTickUnits
+  f.saveas(s"$path$fileName.png")
 
 }
