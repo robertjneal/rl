@@ -119,7 +119,7 @@ class UpdaterTest {
       )
       val averageReward = Reward(3)
 
-      val updated = stochasticGradientAscent(α)(actionPreferences, Action("A"), Reward(2), Step(1), Some(averageReward))
+      val updated = stochasticGradientAscent(α)(actionPreferences, Action("B"), Reward(2), Step(1), Some(averageReward))
       updated.foreach {
         (action, preference) =>
           val initialPreference = actionPreferences(action)
@@ -148,8 +148,8 @@ class UpdaterTest {
       updated.foreach {
         (action, preference) =>
           val initialPreference = actionPreferences(action)
-          if (action == Action("B")) assertTrue(preference < initialPreference)
-          else assertTrue(preference >= initialPreference)
+          if (action == Action("B")) assertEquals(preference, initialPreference)
+          else assertEquals(preference, initialPreference)
       }
     }
 }
