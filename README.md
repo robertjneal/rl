@@ -15,6 +15,12 @@ Part of the goal of this package is to have a reasonable model of the RL problem
 
 ![RL Model](https://github.com/robertjneal/rl/blob/master/model.png?raw=true)
 
+### The Book
+
+I've started putting the output of the code for the book's figures and exercises in the repo. As I add them I'll update the list.
+
+* [Chapter 2](https://github.com/robertjneal/rl/blob/master/book/src/main/scala/bartosutton/exercise/two/two.md)
+
 ### How to Use the Code
 
 You need Dotty. So [follow this process](https://dotty.epfl.ch) to install Dotty. Then you can use this like 
