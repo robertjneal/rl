@@ -15,6 +15,8 @@ Part of the goal of this package is to have a reasonable model of the RL problem
 
 ![RL Model](https://github.com/robertjneal/rl/blob/master/model.png?raw=true)
 
+You can find the model in the [harness project](https://github.com/robertjneal/rl/tree/master/harness).
+
 ### The Book
 
 I've started putting the output of the code for the book's figures and exercises in the repo. As I add them I'll update the list.
