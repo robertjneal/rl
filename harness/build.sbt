@@ -1,4 +1,4 @@
-val dottyVersion = "0.20.0-RC1"
+val dottyVersion = "0.27.0-RC1"
 //val monocleVersion = "2.0.0" // depends on cats 2.x
 
 lazy val root = project

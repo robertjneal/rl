@@ -1,4 +1,4 @@
-val dottyVersion = "0.20.0-RC1"
+val dottyVersion = "0.27.0-RC1"
 
 lazy val harness = RootProject(file("../harness"))
 
