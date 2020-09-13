@@ -3,3 +3,4 @@
 *.dotty*
 target/
 *.pages
+.vscode

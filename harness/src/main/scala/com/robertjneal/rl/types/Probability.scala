@@ -13,6 +13,16 @@ object Probability {
     p
   }
 
+  def evenProbabilities(n: Int): List[Probability] = {
+    if (n < 1) List.empty
+    else if (n == 1) List(Probability.Certain)
+    else {
+      val each = 1 / n.toDouble
+      val nMinusOne = List.fill(n - 1)(each)
+      (1 - nMinusOne.sum) +: nMinusOne
+    }
+  }
+
   def asDouble(p: Probability): Double = p
 
   val Never: Probability = 0.0
