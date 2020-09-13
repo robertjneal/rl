@@ -63,7 +63,8 @@ def policyImprovement(π: Map[State, List[(Action, Probability)]], stateTransiti
     (state, maxActions.keys.toList)
   }}
 
-  ((maxStateActions == π.mapValues{ _.map { (action, _) => action } }.toMap), maxStateActions)
+  val isStable = (maxStateActions == π.mapValues{ _.map { (action, _) => action } }.toMap)
+  (isStable, maxStateActions)
 }
 
 def policyIteration(π: Map[State, List[(Action, Probability)]], stateTransitions: Map[(State, Action), State], stateRewards: Map[State, Reward], γ: Double = 0.9, θ: Double = 0.001) = {
