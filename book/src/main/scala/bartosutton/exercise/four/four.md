@@ -55,3 +55,17 @@ you'll notice it doesn't change significantly.
 
 ## Exercise 4.3
 
+TODO
+
+## Exercise 4.4
+
+What is the bug in the pseudcode for policy iteration? Presumably this is 
+referring to the fact that π(s) is probabilistic. Notice that in the function 
+`policyImprovement()` we compare all of the possible actions of π and π'. 
+This avoids the possibility that, when there are two or more equally greedy 
+options, we compare two different actions that are optimal and determine that 
+we have not yet converged.
+
+## Exercise 4.5
+
+

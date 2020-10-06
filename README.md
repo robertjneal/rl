@@ -22,6 +22,7 @@ You can find the model in the [harness project](https://github.com/robertjneal/r
 I've started putting the output of the code for the book's figures and exercises in the repo. As I add them I'll update the list.
 
 * [Chapter 2](https://github.com/robertjneal/rl/blob/master/book/src/main/scala/bartosutton/exercise/two/two.md)
+* [Chapter 4](https://github.com/robertjneal/rl/blob/master/book/src/main/scala/bartosutton/exercise/four/four.md)
 
 ### How to Use the Code
 
