@@ -87,6 +87,52 @@ def policyIteration(π: Map[State, List[(Action, Probability)]], stateTransition
   iterate(π)
 }
 
+def valueIteration(stateActionProbabilities: Map[State, List[(Action, Probability)]], stateTransitions: Map[StateAction, List[ProbabilityState]], stateRewards: Action => State => Reward, γ: Double = 0.9, θ: Double = 0.001): Map[State, List[(Action, Probability)]] = {
+
+  def nextState(stateValues: Map[State, Reward], currentState: State): State = {
+    if (stateValues.keys.lastOption.filter(_ == currentState).isDefined) stateValues.keys.head
+    else {
+      stateValues.keys.dropWhile(_ != currentState).tail.head
+    }
+  }
+
+  def expectedUpdate(currentStateValues: Map[State, Reward], state: State, currentΔs: Map[State, Double], step: Int = 0): Map[State, Reward] = {
+    val updatedStateValue: Reward = Reward(stateActionProbabilities(state).map{ case (action, probability) => {
+        val sPrimes = stateTransitions(StateAction(state, action))
+        probability.toDouble * sPrimes.foldLeft(0D)((acc, probabilityState) => acc + (probabilityState.probability.toDouble * (stateRewards(action)(probabilityState.state).toDouble + γ * currentStateValues(probabilityState.state).toDouble)))
+    }}.max)
+    val updatedΔs = currentΔs.updated(state, Math.min(currentΔs(state), Math.abs((currentStateValues(state) - updatedStateValue).toDouble)))
+    val updatedStateValues = currentStateValues.updated(state, updatedStateValue)
+    val stopEvaluating = updatedΔs.values.max < θ
+
+    if (stopEvaluating) updatedStateValues
+    else expectedUpdate(updatedStateValues, nextState(currentStateValues, state), updatedΔs, step + 1)
+  }
+
+  val bestRewards = expectedUpdate(
+    stateActionProbabilities.mapValues(_ => Reward(0)).toMap,
+    stateActionProbabilities.keys.head,
+    stateActionProbabilities.mapValues(_ => Double.PositiveInfinity).toMap
+  )
+
+  println(bestRewards)
+
+  stateActionProbabilities.map{ case (state, actionProbabilities) => {
+    state -> {
+      val actionRewards: Map[Action, Reward] = actionProbabilities.map{ (action, _) => action -> Reward({
+        stateTransitions(StateAction(state, action)).foldLeft(0D)((acc, probabilityState) => {
+          val reward = probabilityState.probability.toDouble * bestRewards(probabilityState.state).toDouble
+          reward + acc
+        })
+      })}.toMap
+      val maxValue: Reward = Reward(actionProbabilities.map((action, _) => actionRewards(action).toDouble).max)
+      val bestActions = actionProbabilities.filter{ (action, _) => actionRewards(action) == maxValue }
+      val bestActionProbabilities = bestActions.map { case (action, _) => (action, Probability.unsafe(1/bestActions.length.toDouble)) }
+      bestActionProbabilities
+    }
+  }}
+}
+
 val example1GridTransitions: Map[StateAction, List[ProbabilityState]] = Map(
     StateAction(State("1"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("1"))),
     StateAction(State("1"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("5"))),
@@ -206,7 +252,7 @@ def figure4dot1column2() = {
 def factorial(n: Int): Int = if (n == 0) 1 else n * factorial(n - 1)
 def poisson(λ: Int)(n: Int): Probability = Probability.unsafe((Math.pow(λ, n) / factorial(n).toDouble) * Math.exp(-λ))
 
-def jacksRentalCars(freeCar: Boolean = false, rentParking: Boolean = false) = {
+def jacksRentalCars(value: Boolean = false, freeCar: Boolean = false, rentParking: Boolean = false) = {
   val location1States = (0 to 20).map(i => State(s"$i")) 
   val location2States = (0 to 20).map(i => State(s"$i"))
   val carsToMove = (-5 to 5)
@@ -247,8 +293,9 @@ def jacksRentalCars(freeCar: Boolean = false, rentParking: Boolean = false) = {
       }}.toList
   }}}.toMap
 
-  val optimalPolicy: Map[State, List[(Action, Probability)]] = policyIteration(stateActionProbabilities, transitions, reward(freeCar, rentParking), θ=0.1D)
-  val optimalActions: List[(State, Action)] = optimalPolicy.mapValues(_.sortBy(_._1.toString.toInt).head._1).toList
+  val optimalPolicy: Map[State, List[(Action, Probability)]] = if (value) valueIteration(stateActionProbabilities, transitions, reward(freeCar, rentParking), θ=0.1D) else policyIteration(stateActionProbabilities, transitions, reward(freeCar, rentParking), θ=0.1D)
+  println(optimalPolicy)
+  val optimalActions: List[(State, Action)] = optimalPolicy.mapValues(_.sortBy(_._1.toString.toInt).headOption.getOrElse((Action("0"), Probability.Never))._1).toList
   val sortedByState: List[(State, Action)] = optimalActions.sortBy { case (s, a) => (s.toString.split(",")(0).toInt, s.toString.split(",")(1).toInt) }
   val probabilities: List[(Int, List[(State, Action)])] = sortedByState.groupBy(_._1.toString.split(",")(0)).map{ case (k, v) => k.toInt -> v }.toList.sortBy(_._1)
   val rows: List[List[Double]] = probabilities.map(_._2.map(_._2.toString.toDouble + 5))
@@ -306,5 +353,5 @@ def reward(freeCar: Boolean = false, rentParking: Boolean = false)(action: Actio
 }
 
 def exercise4dot7() = {
-  jacksRentalCars(true, true)
+  jacksRentalCars(false, true, true)
 }
