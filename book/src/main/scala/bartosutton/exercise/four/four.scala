@@ -1,7 +1,8 @@
 package bartosutton.exercise.four
 
+import com.robertjneal.rl._
+import com.robertjneal.rl.agent._
 import com.robertjneal.rl.types._
-
 import com.robertjneal.rl.types.goal._
 
 case class StateAction(state: State, action: Action)
@@ -51,7 +52,7 @@ def policyImprovement(π: Map[State, List[(Action, Probability)]], stateTransiti
   val maxStateActions: Map[State, List[Action]] = π.map { case (state, actionProbabilities) => {
     val oldActionProbabilities: List[(Action, Probability)] = actionProbabilities.filter { (_, probability) => probability > Probability.Never }
 
-    val maxActions: Map[Action, Reward] = oldActionProbabilities.foldLeft(Map.empty[Action, Reward])((maxima, elem) => {
+    val maxActions: Map[Action, Reward] = actionProbabilities.foldLeft(Map.empty[Action, Reward])((maxima, elem) => {
       val (currentAction, currentProbability) = elem
       val reward = Reward(stateTransitions(StateAction(state, currentAction)).foldLeft(0D)((r, probabilityState) => {
         val ProbabilityState(prob: Probability, sPrime: State) = probabilityState
@@ -202,7 +203,10 @@ def figure4dot1column2() = {
   optimalPolicy.foreach(println)
 }
 
-def jacksRentalCars() = {
+def factorial(n: Int): Int = if (n == 0) 1 else n * factorial(n - 1)
+def poisson(λ: Int)(n: Int): Probability = Probability.unsafe((Math.pow(λ, n) / factorial(n).toDouble) * Math.exp(-λ))
+
+def jacksRentalCars(freeCar: Boolean = false, rentParking: Boolean = false) = {
   val location1States = (0 to 20).map(i => State(s"$i")) 
   val location2States = (0 to 20).map(i => State(s"$i"))
   val carsToMove = (-5 to 5)
@@ -228,7 +232,7 @@ def jacksRentalCars() = {
     returnedTo1 <- realisticReturns
     returnedTo2 <- realisticReturns
   } yield
-       {
+      {
         val (location1Begin: Int, location2Begin: Int) = stringToTuple2Int(s.toString)
         val toMove = a.toString.toInt match {
           case i if i < 0 => Math.max(i, -(location2Begin + returnedTo2))
@@ -243,12 +247,12 @@ def jacksRentalCars() = {
       }}.toList
   }}}.toMap
 
-  val optimalPolicy: Map[State, List[(Action, Probability)]] = policyIteration(stateActionProbabilities, transitions, reward, θ=0.1D)
+  val optimalPolicy: Map[State, List[(Action, Probability)]] = policyIteration(stateActionProbabilities, transitions, reward(freeCar, rentParking), θ=0.1D)
   val optimalActions: List[(State, Action)] = optimalPolicy.mapValues(_.sortBy(_._1.toString.toInt).head._1).toList
   val sortedByState: List[(State, Action)] = optimalActions.sortBy { case (s, a) => (s.toString.split(",")(0).toInt, s.toString.split(",")(1).toInt) }
   val probabilities: List[(Int, List[(State, Action)])] = sortedByState.groupBy(_._1.toString.split(",")(0)).map{ case (k, v) => k.toInt -> v }.toList.sortBy(_._1)
   val rows: List[List[Double]] = probabilities.map(_._2.map(_._2.toString.toDouble + 5))
- 
+
   import breeze.linalg._
   import breeze.plot._
   val matrix = DenseMatrix(rows:_*)
@@ -258,18 +262,15 @@ def jacksRentalCars() = {
   f2.subplot(0).legend = true
   f2.saveas("image.png")
 
-  println(transitions.take(100))
+  println(transitions.take(10))
   probabilities.reverse.foreach { println }
 }
-
-def factorial(n: Int): Int = if (n == 0) 1 else n * factorial(n - 1)
-def poisson(λ: Int)(n: Int): Probability = Probability.unsafe((Math.pow(λ, n) / factorial(n).toDouble) * Math.exp(-λ))
 
 def stringToTuple2Int(string: String): Tuple2[Int, Int] = {
   string.split(",") match { case Array(first: String, second: String) => (first.toInt, second.toInt) }
 }
 
-def reward(action: Action)(state: State): Reward = {
+def reward(freeCar: Boolean = false, rentParking: Boolean = false)(action: Action)(state: State): Reward = {
   val (location1: Int, location2: Int) = stringToTuple2Int(state.toString)
   val moved: Int = Math.abs(action.toString.toInt)
   val likelyCarsRequested = (0 to 10)
@@ -295,53 +296,15 @@ def reward(action: Action)(state: State): Reward = {
   val carsRented1 = Math.min(location1, carsRequestedLocation1)
   val carsRented2 = Math.min(location2, carsRequestedLocation2)
 
+  val adjustment: Int = if (freeCar && moved > 0) 2 else 0
+
   val carRentalIncome = 10 * (carsRented1 + carsRented2)
-  val costToMove = 2 * moved
-  val r = Reward(carRentalIncome - costToMove)
+  val costToMove = 2 * moved + adjustment
+  val parkingRentCost = if (rentParking) 4 * Math.min(1, location1 / 10) + 4 * Math.min(1, location2 / 10) else 0
+  val r = Reward(carRentalIncome - costToMove - parkingRentCost)
   r
 }
-/*
-def rewardTest() = {
-  for {
-    i <- 0 to 10
-    j <- 0 to 10
-    diff <- -j to i
-  } yield {
-    (i, j, diff, reward(State(s"$i,$j"))(State(s"${i-diff},${j+diff}")))
-  }
-}
-*/
-def returnCars(state: State): State = {
-  val random1 = Probability.unsafe(scala.util.Random.nextDouble)
-  val random2 = Probability.unsafe(scala.util.Random.nextDouble)
-  val carsReturned1Probabilities: Seq[(Int, Probability)] = (0 to 10).map(n => (n, poisson(2)(n)))
-  val carsReturned2Probabilities: Seq[(Int, Probability)] = (0 to 10).map(n => (n, poisson(3)(n)))
 
-  val carsReturned1 = carsReturned1Probabilities.foldLeft((Probability.Never, -1))((probAndWinner, elem) => {
-    val (probabilityThusFar, winningNumber) = probAndWinner
-    val (n, probabilityOfN) = elem
-    val currentProbability = probabilityThusFar + probabilityOfN
-    if (winningNumber < 0 && currentProbability > random1) (currentProbability, n)
-    else (currentProbability, winningNumber)
-  })._2
-
-  val carsReturned2 = carsReturned1Probabilities.foldLeft((Probability.Never, -1))((probAndWinner, elem) => {
-    val (probabilityThusFar, winningNumber) = probAndWinner
-    val (n, probabilityOfN) = elem
-    val currentProbability = probabilityThusFar + probabilityOfN
-    if (winningNumber < 0 && currentProbability > random2) (currentProbability, n)
-    else (currentProbability, winningNumber)
-  })._2
-
-  val (stateLocation1: Int, stateLocation2: Int) = state.toString.split(",") match { case Array(oneOne: String, oneTwo: String) => (oneOne.toInt, oneTwo.toInt) }
-  val stateLocation1Updated = Math.max(0, Math.min(20, stateLocation1 + carsReturned1))
-  val stateLocation2Updated = Math.max(0, Math.min(20, stateLocation2 + carsReturned2))
-  State(s"$stateLocation1Updated,$stateLocation2Updated")
-}
-
-def returnCarsTest() = {
-  for {
-    i <- 0 to 10
-    j <- 0 to 10
-  } yield s"($i,$j) => ${returnCars(State(s"$i,$j"))}"
+def exercise4dot7() = {
+  jacksRentalCars(true, true)
 }
