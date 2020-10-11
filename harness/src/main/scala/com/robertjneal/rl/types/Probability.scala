@@ -42,6 +42,7 @@ object Probability {
     def <(p2: Probability): Boolean = p1 < p2
     def +(p2: Probability): Probability = p1 + p2
     def /(p2: Probability): Probability = p1 / p2
+    def *(double: Double): Double = p1 * double
 
     def isImpossible: Boolean = p1 == Never
     def isCertain: Boolean = p1 == Certain

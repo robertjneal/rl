@@ -81,6 +81,7 @@ def run[A](agent: TabularAgent[A], runs: Int, steps: Int): MeanOptimal = {
 
 def generatePlot(dvs: Map[String, DenseVector[Double]], path: String, fileName: String, ylabel: String, xlabel: String = "steps", percentage: Boolean = false): Unit = {
   import breeze.plot._
+  import Ordering.Double.TotalOrdering
 
   val f = breeze.plot.Figure()
   val p = f.subplot(0)
@@ -90,7 +91,7 @@ def generatePlot(dvs: Map[String, DenseVector[Double]], path: String, fileName: 
   if (percentage) {
     p.ylim(0.0, 1.0)
   } else {
-    p.ylim(Math.min(0D, dvs.values.minBy(_.min).min), Math.max(0D, dvs.values.maxBy(_.max).max))
+    p.ylim(Math.min(0D, min(dvs.values.minBy(min(_)))), Math.max(0D, max(dvs.values.maxBy(max(_)))))
   }
   dvs.foreach { (name, dv) =>
     p += plot(

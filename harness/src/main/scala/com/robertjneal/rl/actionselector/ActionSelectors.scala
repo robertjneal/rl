@@ -34,7 +34,7 @@ def softMax(actionPreferences: Map[Action, Preference]): Action = {
 def upperConfidenceBound(c: Double, state: State)(step: Step, actionSteps: Map[State, Map[Action, Step]])(actionRewards: Map[Action, Reward]): Action = {
   def valueTransformer(action: Action, reward: Reward): Double = {
     val actionStep = actionSteps.getOrElse(state, Map(action -> Step(1))).getOrElse(action, Step(1))
-    reward.toDouble + c * Math.sqrt(Math.log(step.toInt)/actionStep.toInt.toDouble)
+    reward.toDouble + c * Math.sqrt(Math.log(step.toDouble)/actionStep.toDouble)
   }
 
   val maxima = collectMaxima(valueTransformer, actionRewards)

@@ -14,7 +14,7 @@ private def updateAverage(Q: Double, n: Step, R: Double, averageMethod: (Step) =
   Q + (recencyWeight * error)
 }
 
-def sampleAverage(step: Step): Double = 1D / step.toInt
+def sampleAverage(step: Step): Double = 1D / step.toDouble
 def exponentialRecencyWeightedAverage(weight: Double)(step: Step): Double = weight
 
 def average(averageMethod: (Step) => Double)(actionRewards: Map[Action, Reward], currentAction: Action, currentReward: Reward, currentStep: Step, averageReward: Option[Reward] = None): Map[Action, Reward] = {
