@@ -3,7 +3,7 @@ package com.robertjneal.rl.policyiteration
 import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
 
-private enum IterationType {
+private[policyiteration] enum IterationType {
   case Policy, Value
 }
 
@@ -64,7 +64,14 @@ private[policyiteration] def expectedUpdate(
 }
 
 
-def iterativePolicyEvaluation(π: Map[State, List[ActionProbability]], stateTransitions: Map[StateAction, List[ProbabilityState]], stateRewards: Action => State => Reward, γ: Double = 0.9, θ: Double = 0.001, logFrequency: Int = 0): Map[State, Reward] = {
+def iterativePolicyEvaluation(
+  π: Map[State, List[ActionProbability]], 
+  stateTransitions: Map[StateAction, List[ProbabilityState]], 
+  stateRewards: Action => State => Reward, 
+  γ: Double = 0.9, 
+  θ: Double = 0.001, 
+  logFrequency: Int = 0
+): Map[State, Reward] = {
   if (π.isEmpty) Map.empty[State, Reward]
   else {
     val initialPolicyValues: Map[State, Reward] = π.view.mapValues(r => Reward(0)).toMap

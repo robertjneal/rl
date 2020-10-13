@@ -195,4 +195,30 @@ class policyIterationTest {
         assertEquals(3.225, ev(State("S2")).toDouble, 0.01)
         assertEquals(2.2725, ev(State("S3")).toDouble, 0.01)
     }
+
+    def expectedUpdateEmptyMapTest() = {
+        val ev = expectedUpdate(
+            Map.empty[State, List[ActionProbability]],
+            Map.empty[StateAction, List[ProbabilityState]],
+            (action: Action) => (state: State) => Reward(0),
+            0.0,
+            0.0,
+            Map.empty[State, Reward],
+            State("S1"),
+            Map.empty[State, Double],
+            IterationType.Policy
+        )
+
+        assertEquals(Map.empty[State, Reward], ev)
+    }
+
+    def iterativeEvaluationEmptyMapTest() = {
+        val policyValue = iterativePolicyEvaluation(
+            Map.empty[State, List[ActionProbability]],
+            Map.empty[StateAction, List[ProbabilityState]],
+            (action: Action) => (state: State) => Reward(0)
+        )
+
+        assertEquals(Map.empty[State, Reward], policyValue)
+    }
 }
