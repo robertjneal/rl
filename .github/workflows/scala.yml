@@ -13,5 +13,9 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Run tests
+    - name: Run harness tests
+      working-directory: harness
+      run: sbt test
+    - name: Run book tests
+      working-directory: book
       run: sbt test
