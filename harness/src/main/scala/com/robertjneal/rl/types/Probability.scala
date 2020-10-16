@@ -1,6 +1,6 @@
 package com.robertjneal.rl.types
 
-// Probability type from https://docs.scala-lang.org/sips/opaque-types.html
+// Probability type inspired by https://docs.scala-lang.org/sips/opaque-types.html
 opaque type Probability = Double
 object Probability {
   import scala.util.Random
@@ -13,13 +13,11 @@ object Probability {
     p
   }
 
-  def evenProbabilities(n: Int): List[Probability] = {
-    if (n < 1) List.empty
-    else if (n == 1) List(Probability.Certain)
+  def evenProbability(n: Int): Probability = {
+    if (n < 1) Probability.Never
+    else if (n == 1) Probability.Certain
     else {
-      val each = 1 / n.toDouble
-      val nMinusOne = List.fill(n - 1)(each)
-      (1 - nMinusOne.sum) +: nMinusOne
+      Probability.unsafe(1 / n.toDouble)
     }
   }
 
@@ -42,6 +40,7 @@ object Probability {
     def <(p2: Probability): Boolean = p1 < p2
     def +(p2: Probability): Probability = p1 + p2
     def /(p2: Probability): Probability = p1 / p2
+    def *(double: Double): Double = p1 * double
 
     def isImpossible: Boolean = p1 == Never
     def isCertain: Boolean = p1 == Certain
