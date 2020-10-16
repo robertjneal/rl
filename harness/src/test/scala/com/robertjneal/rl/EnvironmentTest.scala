@@ -11,11 +11,14 @@ class EnvironmentTest {
   def isOptimal1() = {
     val bestRewardValue = 1.9
     val bestAction = Action(s"A$bestRewardValue")
-    val best = (bestAction, StationaryDistribution(new NormalDistribution(bestRewardValue, 1)))
+    val best = (
+      bestAction,
+      StationaryDistribution(new NormalDistribution(bestRewardValue, 1))
+    )
     val actionRewards: Map[Action, RandomReward] = Map(
-        (Action("A=1.4"), StationaryDistribution(new NormalDistribution(1.4, 1))),
-        best,
-        (Action("C=1.1"), StationaryDistribution(new NormalDistribution(1.1, 1))),
+      (Action("A=1.4"), StationaryDistribution(new NormalDistribution(1.4, 1))),
+      best,
+      (Action("C=1.1"), StationaryDistribution(new NormalDistribution(1.1, 1)))
     )
 
     val possibleActions = actionRewards.map { case (a, r) => a }.toVector
