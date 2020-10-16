@@ -4,4 +4,5 @@ opaque type Action = String
 object Action {
   def apply(s: String): Action = s
   def fromString(s: String): Action = Action(s)
+  def unapply(s: String): Option[String] = Some(s)
 }
