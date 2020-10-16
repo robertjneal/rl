@@ -192,6 +192,7 @@ class policyIterationTest {
         assertEquals(2.2725, ev(State("S3")).toDouble, 0.01)
     }
 
+    @Test
     def expectedUpdateEmptyMapTest() = {
         val ev = expectedUpdate(
             Map.empty[State, List[ActionProbability]],
@@ -206,7 +207,8 @@ class policyIterationTest {
         assertEquals(Map.empty[State, Reward], ev)
     }
 
-    def iterativeEvaluationEmptyMapTest() = {
+    @Test
+    def iterativePolicyEvaluationEmptyMapTest() = {
         val policyValue = iterativePolicyEvaluation(
             Map.empty[State, List[ActionProbability]],
             Map.empty[StateAction, List[ProbabilityState]],
@@ -214,5 +216,167 @@ class policyIterationTest {
         )
 
         assertEquals(Map.empty[State, Reward], policyValue)
+    }
+
+    @Test
+    def policyImprovementEmptyMapTest() = {
+        val (stable, policy) = policyImprovement(
+            Map.empty[State, List[ActionProbability]],
+            Map.empty[StateAction, List[ProbabilityState]],
+            Map.empty[State, Reward]
+        )
+
+        assert(policy.isEmpty)
+    }
+
+    @Test
+    def policyImprovementTest() = {
+        // It should select the actions that have the highest immediate reward
+        val policy = Map(
+            State("A") -> List(ActionProbability(Action("A"), Probability.CoinToss), ActionProbability(Action("B"), Probability.CoinToss)),
+            State("B") -> List(ActionProbability(Action("A"), Probability.unsafe(0.1)), ActionProbability(Action("B"), Probability.unsafe(0.8)), ActionProbability(Action("C"), Probability.unsafe(0.1))),
+            State("C") -> List.empty,
+            State("D") -> List.empty
+        )
+        val stateTransitions = Map(
+            StateAction(State("A"), Action("A")) -> List(ProbabilityState(Probability.Certain, State("B"))),
+            StateAction(State("A"), Action("B")) -> List(ProbabilityState(Probability.Certain, State("C"))),
+            StateAction(State("B"), Action("A")) -> List(ProbabilityState(Probability.Certain, State("D"))),
+            StateAction(State("B"), Action("B")) -> List(ProbabilityState(Probability.Certain, State("C"))),
+            StateAction(State("B"), Action("C")) -> List(ProbabilityState(Probability.Certain, State("A")))
+        )
+        val rewards = Map(
+            State("A") -> Reward(1),
+            State("B") -> Reward(2),
+            State("C") -> Reward(3),
+            State("D") -> Reward(3)
+        )
+
+        val optimalActions = Map(
+            State("A") -> List(Action("B")),
+            State("B") -> List(Action("A"), Action("B")),
+            State("C") -> List.empty,
+            State("D") -> List.empty
+        )
+
+        val (stable, computedOptimalActions) = policyImprovement(
+            policy,
+            stateTransitions,
+            rewards
+        )
+
+        assertEquals(optimalActions, computedOptimalActions)
+    }
+
+    @Test
+    def policyIterationEmptyMapTest() = {
+        val policy = policyIteration(
+            Map.empty[State, List[ActionProbability]],
+            Map.empty[StateAction, List[ProbabilityState]],
+            (a: Action) => Map.empty[State, Reward]
+        )
+
+        assert(policy.isEmpty)
+    }
+
+    @Test
+    def policyIterationTest() = {
+        // It should iteratre to the policy that lets us visit more states before the terminal C or D
+        val policy = Map(
+            State("A") -> List(ActionProbability(Action("A"), Probability.CoinToss), ActionProbability(Action("B"), Probability.CoinToss)),
+            State("E") -> List(ActionProbability(Action("A"), Probability.CoinToss), ActionProbability(Action("B"), Probability.CoinToss)),
+            State("B") -> List(ActionProbability(Action("A"), Probability.unsafe(0.1)), ActionProbability(Action("B"), Probability.unsafe(0.6)), ActionProbability(Action("C"), Probability.unsafe(0.1)), ActionProbability(Action("D"), Probability.unsafe(0.2))),
+            State("C") -> List.empty,
+            State("D") -> List.empty
+        )
+        val stateTransitions = Map(
+            StateAction(State("A"), Action("A")) -> List(ProbabilityState(Probability.Certain, State("B"))),
+            StateAction(State("A"), Action("B")) -> List(ProbabilityState(Probability.Certain, State("C"))),
+            StateAction(State("B"), Action("A")) -> List(ProbabilityState(Probability.Certain, State("D"))),
+            StateAction(State("B"), Action("B")) -> List(ProbabilityState(Probability.Certain, State("C"))),
+            StateAction(State("B"), Action("C")) -> List(ProbabilityState(Probability.Certain, State("A"))),
+            StateAction(State("B"), Action("D")) -> List(ProbabilityState(Probability.Certain, State("E"))),
+            StateAction(State("E"), Action("A")) -> List(ProbabilityState(Probability.Certain, State("B"))),
+            StateAction(State("E"), Action("B")) -> List(ProbabilityState(Probability.Certain, State("C")))
+        )
+        val rewards = Map(
+            State("A") -> Reward(1),
+            State("B") -> Reward(2),
+            State("C") -> Reward(3),
+            State("D") -> Reward(3),
+            State("E") -> Reward(1)
+        )
+
+        val optimalPolicy: Map[State, List[ActionProbability]] = Map(
+            State("A") -> List(ActionProbability(Action("A"), Probability.Certain)),
+            State("B") -> List(ActionProbability(Action("C"), Probability.CoinToss), ActionProbability(Action("D"), Probability.CoinToss)),
+            State("C") -> List.empty,
+            State("D") -> List.empty,
+            State("E") -> List(ActionProbability(Action("A"), Probability.Certain))
+        )
+
+        val computedOptimal = policyIteration(
+            policy,
+            stateTransitions,
+            (a: Action) => rewards
+        )
+
+        assertEquals(optimalPolicy, computedOptimal)
+    }
+
+    @Test
+    def valueIterationEmptyMapTest() = {
+        val policy = valueIteration(
+            Map.empty[State, List[ActionProbability]],
+            Map.empty[StateAction, List[ProbabilityState]],
+            (a: Action) => Map.empty[State, Reward]
+        )
+
+        assert(policy.isEmpty)
+    }
+
+    @Test
+    def valueIterationTest() = {
+        // It should iteratre to the policy that lets us visit more states before the terminal C or D
+        val policy = Map(
+            State("A") -> List(ActionProbability(Action("A"), Probability.CoinToss), ActionProbability(Action("B"), Probability.CoinToss)),
+            State("E") -> List(ActionProbability(Action("A"), Probability.CoinToss), ActionProbability(Action("B"), Probability.CoinToss)),
+            State("B") -> List(ActionProbability(Action("A"), Probability.unsafe(0.1)), ActionProbability(Action("B"), Probability.unsafe(0.6)), ActionProbability(Action("C"), Probability.unsafe(0.1)), ActionProbability(Action("D"), Probability.unsafe(0.2))),
+            State("C") -> List.empty,
+            State("D") -> List.empty
+        )
+        val stateTransitions = Map(
+            StateAction(State("A"), Action("A")) -> List(ProbabilityState(Probability.Certain, State("B"))),
+            StateAction(State("A"), Action("B")) -> List(ProbabilityState(Probability.Certain, State("C"))),
+            StateAction(State("B"), Action("A")) -> List(ProbabilityState(Probability.Certain, State("D"))),
+            StateAction(State("B"), Action("B")) -> List(ProbabilityState(Probability.Certain, State("C"))),
+            StateAction(State("B"), Action("C")) -> List(ProbabilityState(Probability.Certain, State("A"))),
+            StateAction(State("B"), Action("D")) -> List(ProbabilityState(Probability.Certain, State("E"))),
+            StateAction(State("E"), Action("A")) -> List(ProbabilityState(Probability.Certain, State("B"))),
+            StateAction(State("E"), Action("B")) -> List(ProbabilityState(Probability.Certain, State("C")))
+        )
+        val rewards = Map(
+            State("A") -> Reward(1),
+            State("B") -> Reward(2),
+            State("C") -> Reward(3),
+            State("D") -> Reward(3),
+            State("E") -> Reward(1)
+        )
+
+        val optimalPolicy: Map[State, List[ActionProbability]] = Map(
+            State("A") -> List(ActionProbability(Action("A"), Probability.Certain)),
+            State("B") -> List(ActionProbability(Action("C"), Probability.CoinToss), ActionProbability(Action("D"), Probability.CoinToss)),
+            State("C") -> List.empty,
+            State("D") -> List.empty,
+            State("E") -> List(ActionProbability(Action("A"), Probability.Certain))
+        )
+
+        val computedOptimal = valueIteration(
+            policy,
+            stateTransitions,
+            (a: Action) => rewards
+        )
+
+        assertEquals(optimalPolicy, computedOptimal)
     }
 }

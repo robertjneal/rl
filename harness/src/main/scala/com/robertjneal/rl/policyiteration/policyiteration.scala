@@ -47,7 +47,10 @@ private[policyiteration] def expectedUpdate(
           )
       }}
       if (iterationType == IterationType.Policy) values.sum
-      else values.max
+      else {
+        if (values.isEmpty) 0
+        else values.max
+      }
     })
     val updatedΔs = currentΔs.updated(state, Math.min(currentΔs(state), Math.abs((currentStateValues(state) - updatedStateValue).toDouble)))
     val updatedPolicyValues = currentStateValues.updated(state, updatedStateValue)
@@ -124,33 +127,38 @@ def policyIteration(π: Map[State, List[ActionProbability]], stateTransitions: M
   iterate(π)
 }
 
-def valueIteration(stateActionProbabilities: Map[State, List[ActionProbability]], stateTransitions: Map[StateAction, List[ProbabilityState]], stateRewards: Action => State => Reward, γ: Double = 0.9, θ: Double = 0.001): Map[State, List[(Action, Probability)]] = {
-  import Ordering.Double.TotalOrdering
+def valueIteration(stateActionProbabilities: Map[State, List[ActionProbability]], stateTransitions: Map[StateAction, List[ProbabilityState]], stateRewards: Action => State => Reward, γ: Double = 0.9, θ: Double = 0.001): Map[State, List[ActionProbability]] = {
+  if (stateActionProbabilities.isEmpty) Map.empty
+  else {
+    import Ordering.Double.TotalOrdering
 
-  val initialStateValues: Map[State, Reward] = stateActionProbabilities.view.mapValues(r => Reward(0)).toMap
+    val bestRewards = expectedUpdate(
+      stateActionProbabilities,
+      stateTransitions,
+      stateRewards,
+      γ,
+      θ,
+      stateActionProbabilities.keys.head,
+      IterationType.Value
+    )
 
-  val bestRewards = expectedUpdate(
-    stateActionProbabilities,
-    stateTransitions,
-    stateRewards,
-    γ,
-    θ,
-    stateActionProbabilities.keys.head,
-    IterationType.Value
-  )
-
-  stateActionProbabilities.map{ case (state, actionProbabilities) => {
-    state -> {
-      val actionRewards: Map[Action, Reward] = actionProbabilities.map{ (action, _) => action -> Reward({
-        stateTransitions(StateAction(state, action)).foldLeft(0D)((acc, probabilityState) => {
-          val reward = probabilityState.probability.toDouble * bestRewards(probabilityState.state).toDouble
-          reward + acc
+    stateActionProbabilities.map{ case (state, actionProbabilities) => {
+      state -> {
+        val actionRewards: Map[Action, Reward] = actionProbabilities.map{ (action, _) => action -> Reward({
+          stateTransitions(StateAction(state, action)).foldLeft(0D)((acc, probabilityState) => {
+            val reward = probabilityState.probability.toDouble * bestRewards(probabilityState.state).toDouble
+            reward + acc
+          })
+        })}.toMap
+        val maxValue: Reward = Reward({
+          val rewards = actionProbabilities.map((action, _) => actionRewards(action).toDouble)
+          if (rewards.isEmpty) 0
+          else rewards.max
         })
-      })}.toMap
-      val maxValue: Reward = Reward(actionProbabilities.map((action, _) => actionRewards(action).toDouble).max)
-      val bestActions = actionProbabilities.filter{ case ActionProbability(action, _) => actionRewards(action) == maxValue }
-      val bestActionProbabilities = bestActions.map { case ActionProbability(action, _) => (action, Probability.unsafe(1/bestActions.length.toDouble)) }
-      bestActionProbabilities
-    }
-  }}
+        val bestActions = actionProbabilities.filter{ case ActionProbability(action, _) => actionRewards(action) == maxValue }
+        val bestActionProbabilities = bestActions.map { case ActionProbability(action, _) => ActionProbability(action, Probability.unsafe(1/bestActions.length.toDouble)) }
+        bestActionProbabilities
+      }
+    }}
+  }
 }
