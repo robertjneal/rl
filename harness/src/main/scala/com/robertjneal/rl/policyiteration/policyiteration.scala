@@ -13,16 +13,19 @@ private[policyiteration] def expectedUpdate(
   stateRewards: Action => State => Reward, 
   γ: Double, 
   θ: Double, 
-  currentStateValues: Map[State, Reward], 
   state: State, 
-  currentΔs: Map[State, Double], 
   iterationType: IterationType,
+  stateValues: Option[Map[State, Reward]] = None, 
+  Δs: Option[Map[State, Double]] = None, 
   step: Int = 0, 
-  logFrequency: Int = 0
+  logFrequency: Int = 0,
+  logMaxSteps: Int = 0
 ): Map[State, Reward] = {
   import Ordering.Double.TotalOrdering
   if (stateActionProbabilities.isEmpty) Map.empty[State, Reward]
   else {
+    val currentStateValues = stateValues.getOrElse(stateActionProbabilities.view.mapValues(r => Reward(0)).toMap)
+    val currentΔs = Δs.getOrElse(stateActionProbabilities.view.mapValues(r => Double.PositiveInfinity).toMap)
     def nextState(stateValues: Map[State, Reward], currentState: State): State = {
       if (stateValues.keys.lastOption.filter(_ == currentState).isDefined) stateValues.keys.head
       else {
@@ -48,10 +51,9 @@ private[policyiteration] def expectedUpdate(
     })
     val updatedΔs = currentΔs.updated(state, Math.min(currentΔs(state), Math.abs((currentStateValues(state) - updatedStateValue).toDouble)))
     val updatedPolicyValues = currentStateValues.updated(state, updatedStateValue)
-    import Ordering.Double.TotalOrdering
     val stopEvaluating = updatedΔs.values.max < θ
 
-    if (logFrequency > 0 && (step % logFrequency == 0 || stopEvaluating)) { 
+    if (logFrequency > 0 && ((step < logMaxSteps && step % logFrequency == 0) || stopEvaluating)) { 
       println(s"==== step: $step =====")
       currentStateValues.toList.sortBy(_._1.toString).foreach { (s, r) =>
         println(s"State: ${s}, Value: ${r}")
@@ -59,7 +61,7 @@ private[policyiteration] def expectedUpdate(
     }
 
     if (stopEvaluating) updatedPolicyValues
-    else expectedUpdate(stateActionProbabilities, stateTransitions, stateRewards, γ, θ, updatedPolicyValues, nextState(currentStateValues, state), updatedΔs, iterationType, step + 1)
+    else expectedUpdate(stateActionProbabilities, stateTransitions, stateRewards, γ, θ, nextState(currentStateValues, state), iterationType, Some(updatedPolicyValues), Some(updatedΔs), step + 1, logFrequency, logMaxSteps)
   }
 }
 
@@ -70,27 +72,18 @@ def iterativePolicyEvaluation(
   stateRewards: Action => State => Reward, 
   γ: Double = 0.9, 
   θ: Double = 0.001, 
-  logFrequency: Int = 0
+  logFrequency: Int = 0,
+  logMaxSteps: Int = 0
 ): Map[State, Reward] = {
   if (π.isEmpty) Map.empty[State, Reward]
   else {
-    val initialPolicyValues: Map[State, Reward] = π.view.mapValues(r => Reward(0)).toMap
-
-    def evaluate(): Map[State, Reward] = {
-      val initialΔs: Map[State, Double] = π.view.mapValues(r => Double.PositiveInfinity).toMap
-
-      expectedUpdate(π, stateTransitions, stateRewards, γ, θ, initialPolicyValues, initialPolicyValues.keys.head, initialΔs, IterationType.Policy)
-    }
-
-    evaluate()
+      expectedUpdate(π, stateTransitions, stateRewards, γ, θ, π.keys.head, IterationType.Policy, logFrequency=logFrequency, logMaxSteps)
   }
 }
 
 def policyImprovement(π: Map[State, List[ActionProbability]], stateTransitions: Map[StateAction, List[ProbabilityState]], policyValues: Map[State, Reward], θ: Double = 0.001): (Boolean, Map[State, List[Action]]) = {
   val maxStateActions: Map[State, List[Action]] = π.map { 
     case (state, actionProbabilities) => {
-      //val oldActionProbabilities: List[ActionProbability] = actionProbabilities.filter { (_, probability) => probability > Probability.Never }
-
       val maxActions: Map[Action, Reward] = actionProbabilities.foldLeft(Map.empty[Action, Reward])((maxima, elem) => {
         val ActionProbability(currentAction, currentProbability) = elem
         val reward = Reward(
@@ -114,8 +107,8 @@ def policyImprovement(π: Map[State, List[ActionProbability]], stateTransitions:
     }
   }
 
-  val policyActions = π.view.mapValues{ _.map { (action, _) => action } }.toMap
-  val isStable = (maxStateActions == policyActions)
+  val policyActions: Map[State, Set[Action]] = π.view.mapValues{ _.map { (action, _) => action }.toSet }.toMap
+  val isStable = (maxStateActions.view.mapValues(_.toSet).toMap == policyActions)
   (isStable, maxStateActions)
 }
 
@@ -142,9 +135,7 @@ def valueIteration(stateActionProbabilities: Map[State, List[ActionProbability]]
     stateRewards,
     γ,
     θ,
-    initialStateValues,
     stateActionProbabilities.keys.head,
-    stateActionProbabilities.view.mapValues(_ => Double.PositiveInfinity).toMap,
     IterationType.Value
   )
 

@@ -76,9 +76,7 @@ class policyIterationTest {
             reward,
             0,
             0.1,
-            stateActionProbabilities.view.mapValues(_ => Reward(0)).toMap,
             State("S1"),
-            stateActionProbabilities.view.mapValues(_ => Double.PositiveInfinity).toMap,
             IterationType.Policy
         )
 
@@ -152,9 +150,7 @@ class policyIterationTest {
             reward,
             γ = 0.1,
             θ = 0.01,
-            stateActionProbabilities.view.mapValues(_ => Reward(0)).toMap,
             State("S1"),
-            stateActionProbabilities.view.mapValues(_ => Double.PositiveInfinity).toMap,
             IterationType.Policy
         )
 
@@ -203,9 +199,7 @@ class policyIterationTest {
             (action: Action) => (state: State) => Reward(0),
             0.0,
             0.0,
-            Map.empty[State, Reward],
             State("S1"),
-            Map.empty[State, Double],
             IterationType.Policy
         )
 

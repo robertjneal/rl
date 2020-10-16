@@ -90,7 +90,7 @@ def figure4dot1column1() = {
   val randomPolicy: Map[State, List[ActionProbability]] = (1 to 14).map(state => (State(state.toString), actionProbabilities)).toMap.updated(State("T"), actionProbabilities)
   val gridRewards: Action => Map[State, Reward] = (a: Action) => (1 to 14).map(state => (State(state.toString), Reward(-1))).toMap.updated(State("T"), Reward(0))
 
-  iterativePolicyEvaluation(randomPolicy, example1GridTransitions, gridRewards, γ = 1.0)
+  iterativePolicyEvaluation(randomPolicy, example1GridTransitions, gridRewards, γ = 1.0, logFrequency=10, logMaxSteps = 100)
 }
 
 def exercise2b() = {
