@@ -50,4 +50,17 @@ object Probability {
     def inverse: Probability = 1 - p1
     override def toString: String = p1.toString
   }
+
+  def pickWithProbabilty[T](
+      p: Probability,
+      items: List[(T, Probability)],
+      cumulativeProbabilities: Probability = Probability.Never
+  ): T = {
+    val hd :: tl = items
+    val (item, prob) = hd
+    val acc = cumulativeProbabilities + prob
+    if (acc > p) item
+    else pickWithProbabilty(p, tl, acc)
+  }
+
 }

@@ -24,6 +24,7 @@ case class TabularAgent[A](
 ) {
   def act: TabularAgent[A] = {
     val actionOption: Option[Action] = (actionSelector, table) match {
+      // TODO: this won't work because the type cannot be checked at runtime
       case (
             rewardSelector: RewardSelector,
             rewardTable: Map[State, Map[Action, Reward]]

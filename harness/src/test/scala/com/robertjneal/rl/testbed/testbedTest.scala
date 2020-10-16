@@ -1,5 +1,6 @@
 package com.robertjneal.rl.testbed
 
+import breeze.linalg._
 import com.robertjneal.rl._
 import com.robertjneal.rl.agent._
 import com.robertjneal.rl.types._
@@ -37,6 +38,7 @@ class testbedTest {
     def pickBest(step: Step, actionsSteps: Map[State, Map[Action, Step]])(
         map: Map[Action, Reward]
     ): Action = {
+      import Ordering.Double.TotalOrdering
       map.maxBy(_._2.toDouble)._1
     }
     def sampleAverage(
@@ -64,10 +66,10 @@ class testbedTest {
     // reward is the true reward of the best action, mas o menos
     assertEquals(
       threeActions.head._2.trueReward.toDouble,
-      result.meanRewards.sum / result.meanRewards.length,
+      sum(result.meanRewards) / result.meanRewards.length,
       0.01
     )
     // optimal action selected 100% of the time
-    assertEquals(1.0, result.optimalActs.sum / result.optimalActs.length, 0.0)
+    assertEquals(1.0, sum(result.optimalActs) / result.optimalActs.length, 0.0)
   }
 }

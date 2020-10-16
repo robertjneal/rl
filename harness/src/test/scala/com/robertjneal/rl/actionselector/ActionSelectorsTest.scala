@@ -186,7 +186,7 @@ class ActionSelectorsTest {
         action3 -> (Preference(99.9), Probability.unsafe(0.37442922))
       )
 
-    val output1 = softMaxProbabilities(inputExpectedOutput1.mapValues {
+    val output1 = softMaxProbabilities(inputExpectedOutput1.view.mapValues {
       _._1
     }.toMap)
 
@@ -275,7 +275,7 @@ class ActionSelectorsTest {
       action3 -> Probability.unsafe(0.37442922)
     )
 
-    val initialCounts: Map[Action, Int] = input1.mapValues { x => 0 }.toMap
+    val initialCounts: Map[Action, Int] = input1.view.mapValues { x => 0 }.toMap
 
     val counts = (0 to runs).foldLeft(initialCounts) { (acc, x) =>
       val chosenAction = softMax(input1)

@@ -93,13 +93,31 @@ def figure4dot1column1() = {
   iterativePolicyEvaluation(randomPolicy, example1GridTransitions, gridRewards, γ = 1.0, logFrequency=10, logMaxSteps = 100)
 }
 
-def exercise2b() = {
+def exercise4dot2a() = {
   val possibleActions: List[Action] = List("up", "down", "left", "right").map(Action(_))
   val actionProbabilities: List[ActionProbability] = possibleActions.map { ActionProbability(_, Probability.unsafe(0.25)) }
   val randomPolicy: Map[State, List[ActionProbability]] = (1 to 15).map(state => (State(state.toString), actionProbabilities)).toMap.updated(State("T"), actionProbabilities)
   val gridRewards: Action => Map[State, Reward] = (a: Action) => (1 to 15).map(state => (State(state.toString), Reward(-1))).toMap.updated(State("T"), Reward(0))
 
   val gridTransitions = example1GridTransitions ++ //.updated((State("13"), Action("down")), State("15")) ++ 
+    Map(
+      StateAction(State("15"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("13"))),
+      StateAction(State("15"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("15"))),
+      StateAction(State("15"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("12"))),
+      StateAction(State("15"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("14")))
+    )
+
+
+  iterativePolicyEvaluation(randomPolicy, gridTransitions, gridRewards, γ = 1.0)
+}
+
+def exercise4dot2b() = {
+  val possibleActions: List[Action] = List("up", "down", "left", "right").map(Action(_))
+  val actionProbabilities: List[ActionProbability] = possibleActions.map { ActionProbability(_, Probability.unsafe(0.25)) }
+  val randomPolicy: Map[State, List[ActionProbability]] = (1 to 15).map(state => (State(state.toString), actionProbabilities)).toMap.updated(State("T"), actionProbabilities)
+  val gridRewards: Action => Map[State, Reward] = (a: Action) => (1 to 15).map(state => (State(state.toString), Reward(-1))).toMap.updated(State("T"), Reward(0))
+
+  val gridTransitions = example1GridTransitions.updated(StateAction(State("13"), Action("down")), List(ProbabilityState(Probability.Certain, State("15")))) ++ 
     Map(
       StateAction(State("15"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("13"))),
       StateAction(State("15"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("15"))),

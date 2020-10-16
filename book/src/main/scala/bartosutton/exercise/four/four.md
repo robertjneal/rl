@@ -9,27 +9,32 @@ The iterative policy evaluation is based on the pseudocode in the section
 `Iterative Policy Evaluation, for estimating V≈ vπ` with a couple of 
 modifications. First, it uses the "in place" version discussed in §4.1. 
 Second, we check to see if each delta is below our threshold before stopping.
+Consequently the steps are multiples of ten and the rewards are not exact.
 
 ## Exercise 4.1
 
-We want to know the value of q<sub>π</sub>(11, down) and q<sub>π</sub>(7, 
-down).
+We want to know the value of q<sub>π</sub>(11, `down`) and q<sub>π</sub>(7, 
+`down`).
 
 Notice that we only have V<sub>π</sub>, not q<sub>π</sub>. However, 
-q<sub>π</sub>(s, a) = V<sub>π</sub>(s'). That is, the value of the action-
-value function is the value of the state that the agent ends up in (s') because 
+q<sub>π</sub>(s, a) = V<sub>π</sub>(s') when an action is deterministic. 
+That is, the value of the action-value function, q<sub>π</sub>(s, a), is the 
+value of the state that the agent ends up in (s') because 
 of taking an action (a) from a state (s). So, for the first question, we can 
-just ask what is the value of the terminal state V(T), and for the second 
-question, we can ask what is the value of V(11).
+just ask what is the value of the terminal state V(T) because taking the 
+action `down` from state 11 deterministcally results in the agent being in 
+the terminal state. Similarly, for the second question, we can  ask what 
+is the value of V(11).
 
-A1: q<sub>π</sub>(11, down) = 0
-A2: q<sub>π</sub>(7, down) = -14
+A1: q<sub>π</sub>(11, `down`) = 0
+
+A2: q<sub>π</sub>(7, `down`) = -14
 
 ## Exercise 4.2
 
 If we added a new state, 15, what would the value of that state be if it had 
-equiprobable transition probabilities and left took it to 12, up took it to 
-13, right took it to 14, and down took it to 15, where 15 is unreachable from 
+equiprobable transition probabilities and `left` took it to 12, `up` took it to 
+13, `right` took it to 14, and `down` took it to 15, where 15 is unreachable from 
 any other state?
 
 We start with
@@ -41,17 +46,22 @@ again until the number stabilizes. Eventually we get to about -18.7.
 
 V<sub>π</sub>(15) = -19
 
-What if 15 is reachable from 13 via the down action?
+What if 15 is reachable from 13 via the `down` action?
 
 One thing to consider is that this should change the value of state 13. 
-(13, down) used to result in state 13 with a value of -20, but now it 
-results in state 15, with a value of -19. Notice also, though, that given 
+(13, `down`) used to result in state 13 with a value of -20, but now it 
+results in state 15, with a value of -19. Notice, though, that given 
 the other three states accesible from 13's values, it shouldn't change much.
-Therefore, given that (15, up) results in state 13, state 15's value should 
+Additionally, given that (15, `up`) results in state 13, state 15's value should 
 not change much either.
 
-In fact, if you compare the output of `figure4dot1column1()` and `exercise2b()` 
-you'll notice it doesn't change significantly.
+In fact, if you compare the output of `figure4dot1column1()` and 
+`exercise4dot2b()` you'll notice it doesn't change significantly. One helpful 
+way to think about why this is the case is to imagine that 15 was as stated 
+above in each of the problems except that `up` took it to 9. Then 15 and 13 
+would have the same actions resulting in the same states with the same values. 
+So, the only difference between 15 and 13 is the `up` action which does not 
+affect the value much at all.
 
 ## Exercise 4.3
 

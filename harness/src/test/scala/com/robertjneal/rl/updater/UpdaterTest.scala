@@ -99,9 +99,9 @@ class UpdaterTest {
     val action = Action("A")
     val orderedRewards = List.fill(size)(scala.util.Random.nextInt(1000))
     val actionRewards = Map((action, Reward(0)))
-    val expected = Math.pow(1 - α, size) * 0 +
+    val expected = Math.pow(1 - α, size.toDouble) * 0 +
       (for (i <- 1 to size) yield {
-        α * Math.pow((1 - α), size - i) * orderedRewards(i - 1)
+        α * Math.pow((1 - α), size.toDouble - i) * orderedRewards(i - 1)
       }).sum
 
     val finalActionRewards = updatedActionRewards(
