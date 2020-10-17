@@ -65,7 +65,19 @@ affect the value much at all.
 
 ## Exercise 4.3
 
-TODO
+Write the analgous equation for the following, but for q<sub>π</sub>(s,a):
+
+4.3] V<sub>π</sub>(s) ≐ E[R<sub>t+1</sub> + γV<sub>π</sub>(S<sub>t+1</sub>) | S<sub>t</sub> = s]
+
+4.4] V<sub>π</sub>(s) ≐ ∑<sub>a</sub>π(a|s)∑<sub>s',r</sub>p(s', r | s, a)(r + γV<sub>π</sub>(s'))
+
+4.5] V<sub>k+1</sub>(s) ≐ ∑<sub>a</sub>π(a|s)∑<sub>s',r</sub>p(s', r | s, a)(r + γV<sub>k</sub>(s'))
+
+4.3] q<sub>π</sub>(s,a) ≐ E[R<sub>t+1</sub> + γV<sub>π</sub>(S<sub>t+1</sub>) | S<sub>t</sub> = s, A<sub>t</sub> = a]
+
+4.4] q<sub>π</sub>(s,a) ≐ ∑<sub>s',r</sub>p(s', r | s, a)(r + γV<sub>π</sub>(s'))
+
+4.5] q<sub>k+1</sub>(s,a) ≐ ∑<sub>s',r</sub>p(s', r | s, a)(r + γV<sub>k</sub>(s'))
 
 ## Exercise 4.4
 
