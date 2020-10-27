@@ -90,4 +90,95 @@ we have not yet converged.
 
 ## Exercise 4.5
 
+Policy Iteration
+<pre>
+Policy Evaluation:
+Loop:
+  Delta <- 0
+  Loop for each s ∈ S:
+    v <- V(s)
+    V(s) <- ∑<sub>s',r</sub>p(s', r | s, π(s))(r + γV(s'))
+    Delta <- max(Delta, |v - V(s)|)
+until Delta < Theta
 
+Policy Improvement:
+policy-stable <- true
+For each s ∈ S:
+  old-action <- π(s)
+  π(s) <- argmax<sub>a</sub>∑<sub>s',r</sub>p(s', r | s, a)[r + V(s')]
+  If old-action ≠ π(s), then policy-stable <- false
+If policy-stable, then stop and return V ≈ v, and π ≈ π<sub>*</sub>; else go to 2
+</pre>
+
+Action-Value Iteration
+<pre>
+Policy Evaluation:
+Loop:
+  Delta <- 0
+  Loop for each s ∈ S:
+    Loop for each a ∈ A(s):
+      v <- Q(s,a)
+      Q(s,a) <- ∑<sub>s',r</sub>p(s', r | s, a)(r + γ∑<sub>a'</sub>Q(s',a'))
+      Delta <- max(Delta, |v - Q(s,a)|)
+until Delta < Theta
+
+Policy Improvement:
+policy-stable <- true
+For each s ∈ S:
+  old-action <- π(s)
+  π(s) <- ∑<sub>s',r</sub>p(s', r | s, a)[r + argmax<sub>a'</sub>Q(s',a')]
+  If old-action ≠ π(s), then policy-stable <- false
+If policy-stable, then stop and return V ≈ v, and π ≈ π<sub>*</sub>; else go to 2
+</pre>
+
+TODO: Write code showing each side-by-side
+
+## Exercise 4.6
+
+In policy improvement we'll need to set π(s) to the set of all actions where the 
+probability for each action is ε/|A(s)| except for the actions which maximize the 
+values which will get equal proportions of 1-ε/(|A(s)| - n) where n is the number 
+of actions that maximize the value for that state.
+
+In policy evaluation we'll need to change the assignment to V(s) such that it 
+includes all of the actions. So something like 
+V(s) <- ∑<sub>a</sub>p(a)∑<sub>s',r</sub>p(s', r | s, a)(r + γV(s'))
+
+And finally, in the initialization we'll nned to set π(s) such that each action 
+has at least ε/|A(s)| probability. A straightforward way to do that is to use a 
+uniform policy which is an ε-soft policy.
+
+## Exercise 4.7
+
+`exercise4dot7()`
+
+## Exercise 4.8
+
+This is a question that's very specific to the policy the book found. But notice 
+that here we produce a very reasonable policy (consitent with others) that does 
+not look like the policy in the book.
+
+Two things to say then. First, the policy we generate here is easy to understand. 
+The gambler should always bet the maximum. Imagine the gambler bet less than the 
+maximum, then when they bet max - n, they would have a 0.4 chance of getting to 
+max + max - n. Then the next bet, the best option is a 0.4 chance of the new max, 
+viz. 0.4 * 0.4 for the two bets. It would be better then for 0.4 * 0.4 to be 
+multiplied by the maximum since for each bet the probability decreases.
+
+Second, why would such a curious policy as that produced in the text be produced? 
+For a thorought explanation see 
+[Li & Pyeatt](http://dl.ifip.org/db/conf/ifip12/iip2004/LiP04.pdf).
+
+## Exercise 4.9
+
+Notice that our sweep graph will look quite a bit different since our algorithm 
+does not visit each state once for each sweep. Nonetheless the progression is 
+similar.
+
+![Gamblers Problem Ph=0.25, θ=0.01](gamblersProblem0.25-0.01a.png "Gamblers Problem Ph=0.25, θ=0.01")
+
+![Gamblers Problem Ph=0.25, θ=0.01](gamblersProblem0.25-0.01b.png "Gamblers Problem Ph=0.25, θ=0.01")
+
+![Gamblers Problem Ph=0.55, θ=0.01](gamblersProblem0.55-0.01a.png "Gamblers Problem Ph=0.55, θ=0.01")
+
+![Gamblers Problem Ph=0.55, θ=0.01](gamblersProblem0.55-0.01b.png "Gamblers Problem Ph=0.55, θ=0.01")

@@ -39,11 +39,19 @@ class AgentTest {
     assertEquals(agent.e.possibleStateActions, result1.e.possibleStateActions)
     assertEquals(
       1,
-      result1.actionSteps(OneState).values.map(_.toInt).sum - actionRewards.size
+      result1
+        .actionSteps(OneState)
+        .values
+        .map(_.toInt)
+        .sum - actionRewards.size.toLong
     )
     assertEquals(
       result1.step,
-      result1.actionSteps(OneState).values.map(_.toInt).sum - actionRewards.size
+      result1
+        .actionSteps(OneState)
+        .values
+        .map(_.toInt)
+        .sum - actionRewards.size.toLong
     )
 
     val result2: TabularAgent[Reward] = result1.act
@@ -51,11 +59,19 @@ class AgentTest {
     assertEquals(result1.e.possibleStateActions, result2.e.possibleStateActions)
     assertEquals(
       2,
-      result2.actionSteps(OneState).values.map(_.toInt).sum - actionRewards.size.toLong
+      result2
+        .actionSteps(OneState)
+        .values
+        .map(_.toInt)
+        .sum - actionRewards.size.toLong
     )
     assertEquals(
       result2.step,
-      result2.actionSteps(OneState).values.map(_.toInt).sum - actionRewards.size.toLong
+      result2
+        .actionSteps(OneState)
+        .values
+        .map(_.toInt)
+        .sum - actionRewards.size.toLong
     )
   }
 }

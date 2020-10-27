@@ -1,5 +1,6 @@
 package bartosutton.exercise.four
 
+import breeze.linalg.DenseVector
 import com.robertjneal.rl._
 import com.robertjneal.rl.agent._
 import com.robertjneal.rl.policyiteration._
@@ -244,4 +245,84 @@ def reward(freeCar: Boolean = false, rentParking: Boolean = false)(action: Actio
 
 def exercise4dot7() = {
   jacksRentalCars(true, true)
+}
+
+def gamblersProblem(numberOfStates: Int, probabilityOfWinning: Probability, θ: Double = 0.01) = {
+  val states = (0 until numberOfStates).toList
+  val stateActionProbabilities: Map[State, List[ActionProbability]] = states.map {s =>
+    val numberOfActions = Math.min(s, numberOfStates - s)
+    State(s.toString) ->
+    (0 to numberOfActions).map(a => ActionProbability(Action(a.toString), Probability.evenProbability(numberOfActions))).toList
+  }.toMap.updated(State(numberOfStates.toString), List.empty)
+
+  def stateTransitions(stateAction: StateAction): List[ProbabilityState] = {
+    val StateAction(state, action) = stateAction
+    val stake = state.toString.toInt
+    val bet = action.toString.toInt
+    List(
+      ProbabilityState(Probability.Certain - probabilityOfWinning, State((stake - bet).toString)),
+      ProbabilityState(probabilityOfWinning, State((stake + bet).toString))
+    )
+  }
+
+  def stateRewards(action: Action)(state: State): Reward = {
+    if (state.toString == numberOfStates.toString) Reward(1)
+    else Reward(0)
+  }
+
+  val optimalPolicy: PolicyHistory = valueIteration(
+    stateActionProbabilities,
+    stateTransitions,
+    stateRewards,
+    γ = 1,
+    θ = 0.01,
+    logFrequency = 0,
+    logMaxSteps = 100,
+    recordHistory = true
+  )
+
+  val bets: Array[Double] = optimalPolicy.policy.toList.sortBy(_._1.toString.toInt).map(_._2.headOption.getOrElse(ActionProbability(Action("0"), Probability.Never)).action.toString.toDouble).toArray
+
+  val denseVector = breeze.linalg.DenseVector(
+    bets
+  )
+
+  val tenthOfHistory: List[Map[State, Reward]] = optimalPolicy.history.grouped(10).map(_.head).toList
+
+  val historyAsArray: Array[(Array[Double], Int)] = tenthOfHistory.map(stateRewards =>
+    stateRewards.toList.sortBy(_._1.toString.toInt).map(_._2.toDouble).toArray
+  ).zipWithIndex.toArray
+
+  val history: Map[String, DenseVector[Double]] = historyAsArray.map((rewards,index) => index.toString -> DenseVector(rewards)).toMap
+
+  testbed.generatePlot(
+    history,
+    "src/main/scala/bartosutton/exercise/four/",
+    s"gamblersProblem${probabilityOfWinning.toString}-${θ}a",
+    "Value Estimate",
+    "Bankroll"
+  )
+
+  testbed.generatePlot(
+    Map("Bets" -> denseVector),
+    "src/main/scala/bartosutton/exercise/four/",
+    s"gamblersProblem${probabilityOfWinning.toString}-${θ}b",
+    "Bet",
+    "Bankroll"
+  )
+}
+
+def exercise4dot8() = {
+  val numberOfStates = 100
+  val probabilityOfWinning = Probability.unsafe(0.4)
+  gamblersProblem(numberOfStates, probabilityOfWinning)
+}
+
+def exercise4dot9(θ: Double = 0.01) = {
+  val numberOfStates = 100
+  val probabilityOfWinning1 = Probability.unsafe(0.25)
+  gamblersProblem(numberOfStates, probabilityOfWinning1, θ)
+
+  val probabilityOfWinning2 = Probability.unsafe(0.55)
+  gamblersProblem(numberOfStates, probabilityOfWinning2, θ)
 }

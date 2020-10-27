@@ -1,6 +1,6 @@
 package com.robertjneal.rl.testbed
 
-import breeze.linalg._
+import breeze.linalg.sum
 import com.robertjneal.rl._
 import com.robertjneal.rl.agent._
 import com.robertjneal.rl.types._
