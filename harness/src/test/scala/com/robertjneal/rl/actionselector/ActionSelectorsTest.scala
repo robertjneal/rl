@@ -215,7 +215,7 @@ class ActionSelectorsTest {
         action3 -> (Preference(100), Probability.unsafe(1.0))
       )
 
-    val output1 = softMaxProbabilities(inputExpectedOutput2.mapValues {
+    val output1 = softMaxProbabilities(inputExpectedOutput2.view.mapValues {
       (pref, prob) => pref
     }.toMap)
 

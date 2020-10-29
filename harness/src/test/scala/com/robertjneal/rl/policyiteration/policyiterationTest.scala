@@ -210,7 +210,7 @@ class policyIterationTest {
       IterationType.Policy
     )
 
-    assertEquals(Map.empty[State, Reward], ev)
+    assertEquals(ExpectationHistory(Map.empty[State, Reward], List.empty[Map[State, Reward]]), ev)
   }
 
   @Test
@@ -385,7 +385,7 @@ class policyIterationTest {
       (a: Action) => Map.empty[State, Reward]
     )
 
-    assert(policy.expectation.isEmpty)
+    assert(policy.policy.isEmpty)
   }
 
   @Test
@@ -457,9 +457,10 @@ class policyIterationTest {
     val computedOptimal = valueIteration(
       policy,
       stateTransitions,
-      (a: Action) => rewards
+      (a: Action) => rewards,
+      deterministic = false
     )
 
-    assertEquals(optimalPolicy, computedOptimal)
+    assertEquals(optimalPolicy, computedOptimal.policy)
   }
 }
