@@ -198,7 +198,7 @@ def jacksRentalCars(freeCar: Boolean = false, rentParking: Boolean = false) = {
   val f2 = Figure()
   f2.subplot(0) += image(matrix)
   f2.subplot(0).legend = true
-  f2.saveas("image.png")
+  f2.saveas("src/main/scala/bartosutton/exercise/four/jacksRental4.7.png")
 
   println(transitions.take(10))
   probabilities.reverse.foreach { println }

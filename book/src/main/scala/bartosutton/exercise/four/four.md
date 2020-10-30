@@ -150,7 +150,7 @@ uniform policy which is an ε-soft policy.
 
 ## Exercise 4.7
 
-`exercise4dot7()`
+![Jack's Car Rental Problem](jacksRental4.7.png "Jack's Car Rental Problem")
 
 ## Exercise 4.8
 
