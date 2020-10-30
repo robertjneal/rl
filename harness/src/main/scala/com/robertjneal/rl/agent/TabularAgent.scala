@@ -7,7 +7,7 @@ import scala.util.Try
 
 case class TabularAgent[A](
     e: Environment,
-    actionSelector: Selector,
+    actionSelector: Selector[A],
     updater: (
         Map[Action, A],
         Action,
@@ -23,23 +23,21 @@ case class TabularAgent[A](
     history: Array[(OptimalAct, Reward)] = Array.empty
 ) {
   def act: TabularAgent[A] = {
-    val actionOption: Option[Action] = (actionSelector, table) match {
-      // TODO: this won't work because the type cannot be checked at runtime
-      case (
-            rewardSelector: RewardSelector,
-            rewardTable: Map[State, Map[Action, Reward]]
-          ) => {
+    val actionOption: Option[Action] = actionSelector match {
+      case rewardSelector: RewardSelector[_] => {
         Some(
-          rewardSelector.actionSelector(step, actionSteps)(rewardTable(e.state))
+          rewardSelector.actionSelector(step, actionSteps)(
+            table.asInstanceOf[Map[State, Map[Action, Reward]]](e.state)
+          )
         )
       }
-      case (
-            preferenceSelector: PreferenceSelector,
-            preferenceTable: Map[State, Map[Action, Preference]]
-          ) => {
-        Some(preferenceSelector.actionSelector(preferenceTable(e.state)))
+      case preferenceSelector: PreferenceSelector[_] => {
+        Some(
+          preferenceSelector.actionSelector(
+            table.asInstanceOf[Map[State, Map[Action, Preference]]](e.state)
+          )
+        )
       }
-      case _ => None
     }
 
     actionOption match {
@@ -91,7 +89,7 @@ case class TabularAgent[A](
 object TabularAgent {
   def blankSlate[A](
       e: Environment,
-      actionSelector: Selector,
+      actionSelector: Selector[A],
       updater: (
           Map[Action, A],
           Action,
