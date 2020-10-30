@@ -41,6 +41,7 @@ object Probability {
     def +(p2: Probability): Probability = p1 + p2
     def /(p2: Probability): Probability = p1 / p2
     def *(double: Double): Double = p1 * double
+    def -(p2: Probability): Probability = p1 - p2
 
     def isImpossible: Boolean = p1 == Never
     def isCertain: Boolean = p1 == Certain
@@ -50,4 +51,17 @@ object Probability {
     def inverse: Probability = 1 - p1
     override def toString: String = p1.toString
   }
+
+  def pickWithProbabilty[T](
+      p: Probability,
+      items: List[(T, Probability)],
+      cumulativeProbabilities: Probability = Probability.Never
+  ): T = {
+    val hd :: tl = items
+    val (item, prob) = hd
+    val acc = cumulativeProbabilities + prob
+    if (acc > p) item
+    else pickWithProbabilty(p, tl, acc)
+  }
+
 }

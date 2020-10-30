@@ -25,18 +25,7 @@ def softMaxProbabilities(
 def softMax(actionPreferences: Map[Action, Preference]): Action = {
   val actionProbabilities = softMaxProbabilities(actionPreferences).toList
 
-  def pickWithProbabilty[T](
-      p: Probability,
-      map: List[(T, Probability)],
-      cumulativeProbabilities: Double = 0
-  ): T = {
-    val hd :: tl = map
-    val acc = cumulativeProbabilities.toDouble + hd._2.toDouble
-    if (acc > p.toDouble) hd._1
-    else pickWithProbabilty(p, tl, acc)
-  }
-
-  pickWithProbabilty[Action](Probability.random, actionProbabilities)
+  Probability.pickWithProbabilty[Action](Probability.random, actionProbabilities)
 }
 
 def upperConfidenceBound(c: Double, state: State)(
@@ -48,7 +37,7 @@ def upperConfidenceBound(c: Double, state: State)(
       .getOrElse(state, Map(action -> Step(1)))
       .getOrElse(action, Step(1))
     reward.toDouble + c * Math.sqrt(
-      Math.log(step.toInt) / actionStep.toInt.toDouble
+      Math.log(step.toDouble) / actionStep.toDouble
     )
   }
 
