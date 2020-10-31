@@ -3,7 +3,9 @@ package com.robertjneal.rl.testbed
 import breeze.linalg.{Vector => BreezeVector, _}
 import com.robertjneal.rl._
 import com.robertjneal.rl.agent.TabularAgent
+import com.robertjneal.rl.types.goal.Goal
 import com.robertjneal.rl.types._
+import com.robertjneal.rl.types.goal.Goal
 import java.util.concurrent.ThreadLocalRandom
 import org.apache.commons.math3.distribution._
 import org.apache.commons.math3.random.RandomGenerator
@@ -63,7 +65,7 @@ def tenArmEnvironment(μ: Double = 0d): BanditEnvironment = {
   environment
 }
 
-def run[A](agent: TabularAgent[A], runs: Int, steps: Int): MeanOptimal = {
+def run[A <: Goal](agent: TabularAgent[A], runs: Int, steps: Int): MeanOptimal = {
   import scala.collection.parallel.ParSeq
   import scala.collection.parallel.CollectionConverters._
 

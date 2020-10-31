@@ -15,7 +15,7 @@ Consequently the steps are multiples of ten and the rewards are not exact.
 
 We want to know the value of q<sub>π</sub>(11, `down`) and q<sub>π</sub>(7, 
 `down`).
-
+...
 Notice that we only have V<sub>π</sub>, not q<sub>π</sub>. However, 
 q<sub>π</sub>(s, a) = V<sub>π</sub>(s') when an action is deterministic. 
 That is, the value of the action-value function, q<sub>π</sub>(s, a), is the 

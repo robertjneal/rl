@@ -3,18 +3,13 @@ package com.robertjneal.rl.agent
 import com.robertjneal.rl.Environment
 import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
+import com.robertjneal.rl.updater._
 import scala.util.Try
 
-case class TabularAgent[A](
+case class TabularAgent[A <: Goal](
     e: Environment,
     actionSelector: Selector[A],
-    updater: (
-        Map[Action, A],
-        Action,
-        Reward,
-        Step,
-        Option[Reward]
-    ) => Map[Action, A],
+    updater: Updater[A],
     step: Step,
     actionSteps: Map[State, Map[Action, Step]],
     table: Map[State, Map[Action, A]],
@@ -87,16 +82,10 @@ case class TabularAgent[A](
 }
 
 object TabularAgent {
-  def blankSlate[A](
+  def blankSlate[A <: Goal](
       e: Environment,
       actionSelector: Selector[A],
-      updater: (
-          Map[Action, A],
-          Action,
-          Reward,
-          Step,
-          Option[Reward]
-      ) => Map[Action, A],
+      updater: Updater[A],
       initialGoalValue: A,
       recordHistory: Boolean = false
   ): TabularAgent[A] = {
@@ -124,13 +113,7 @@ object TabularAgent {
           Step,
           Map[State, Map[Action, Step]]
       ) => Map[Action, Reward] => Action,
-      updater: (
-          Map[Action, Reward],
-          Action,
-          Reward,
-          Step,
-          Option[Reward]
-      ) => Map[Action, Reward],
+      updater: Updater[Reward],
       recordHistory: Boolean = false
   ): TabularAgent[Reward] = {
     blankSlate[Reward](
@@ -145,13 +128,7 @@ object TabularAgent {
   def preferenceBlankSlate(
       e: Environment,
       actionSelector: Map[Action, Preference] => Action,
-      updater: (
-          Map[Action, Preference],
-          Action,
-          Reward,
-          Step,
-          Option[Reward]
-      ) => Map[Action, Preference],
+      updater: Updater[Preference],
       recordHistory: Boolean = false
   ): TabularAgent[Preference] = {
     blankSlate[Preference](
