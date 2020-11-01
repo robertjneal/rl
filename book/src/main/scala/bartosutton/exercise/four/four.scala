@@ -283,7 +283,7 @@ def gamblersProblem(numberOfStates: Int, probabilityOfWinning: Probability, θ: 
 
   val bets: Array[Double] = optimalPolicy.policy.toList.sortBy(_._1.toString.toInt).map(_._2.headOption.getOrElse(ActionProbability(Action("0"), Probability.Never)).action.toString.toDouble).toArray
 
-  val denseVector = breeze.linalg.DenseVector(
+  val denseVector = DenseVector(
     bets
   )
 

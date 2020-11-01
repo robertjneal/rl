@@ -1,6 +1,7 @@
 package bartosutton.exercise.two
 
 import breeze.linalg.DenseVector
+import breeze.linalg.sum
 import com.robertjneal.rl.actionselector._
 import com.robertjneal.rl.agent._
 import com.robertjneal.rl._
@@ -244,7 +245,7 @@ def figure2dot6(debug: Boolean = false) = {
         steps
       )
 
-      (ε.toDouble, result.meanRewards.sum / steps.toDouble)
+      (ε.toDouble, sum(result.meanRewards) / steps.toDouble)
     }}
   )
 
@@ -268,13 +269,13 @@ def figure2dot6(debug: Boolean = false) = {
       if (debug) {
         println("stochastic gradient")
         println(s"α: $α")
-        println(s"mean reward: ${result.meanRewards.sum / steps.toDouble}")
+        println(s"mean reward: ${sum(result.meanRewards) / steps.toDouble}")
         (0 to 20).foreach { i =>
           println(result.meanRewards(i))
         }
       }
 
-      (α, result.meanRewards.sum / steps.toDouble)
+      (α, sum(result.meanRewards) / steps.toDouble)
     }}
   )
 
@@ -295,7 +296,7 @@ def figure2dot6(debug: Boolean = false) = {
         steps
       )
 
-      (c, result.meanRewards.sum / steps.toDouble)
+      (c, sum(result.meanRewards) / steps.toDouble)
     }}
   )
 
@@ -328,7 +329,7 @@ def figure2dot6(debug: Boolean = false) = {
         steps
       )
 
-      (i, result.meanRewards.sum / steps.toDouble)
+      (i, sum(result.meanRewards) / steps.toDouble)
     }}
   )
 
@@ -378,7 +379,7 @@ def exercise2dot11(runs: Integer = 2000, steps: Integer = 200000, includeεGreed
         steps
       )
 
-      (ε.toDouble, result.meanRewards.slice(steps / 2, steps.toInt, 1).sum / (steps / 2).toDouble)
+      (ε.toDouble, sum(result.meanRewards.slice(steps / 2, steps.toInt, 1)) / (steps / 2).toDouble)
     }}
   )
 
@@ -402,13 +403,13 @@ def exercise2dot11(runs: Integer = 2000, steps: Integer = 200000, includeεGreed
       if (debug) {
         println("stochastic gradient")
         println(s"α: $α")
-        println(s"mean reward: ${result.meanRewards.sum / steps.toDouble}")
+        println(s"mean reward: ${sum(result.meanRewards) / steps.toDouble}")
         (0 to 20).foreach { i =>
           println(result.meanRewards(i))
         }
       }
 
-      (α, result.meanRewards.slice(steps / 2, steps.toInt, 1).sum / (steps / 2).toDouble)
+      (α, sum(result.meanRewards.slice(steps / 2, steps.toInt, 1)) / (steps / 2).toDouble)
     }}
   )
 
@@ -429,7 +430,7 @@ def exercise2dot11(runs: Integer = 2000, steps: Integer = 200000, includeεGreed
         steps
       )
 
-      (c, result.meanRewards.slice(steps / 2, steps.toInt, 1).sum / (steps / 2).toDouble)
+      (c, sum(result.meanRewards.slice(steps / 2, steps.toInt, 1)) / (steps / 2).toDouble)
     }}
   )
 
@@ -462,7 +463,7 @@ def exercise2dot11(runs: Integer = 2000, steps: Integer = 200000, includeεGreed
         steps
       )
 
-      (i, result.meanRewards.slice(steps / 2, steps.toInt, 1).sum / (steps / 2).toDouble)
+      (i, sum(result.meanRewards.slice(steps / 2, steps.toInt, 1)) / (steps / 2).toDouble)
     }}
   )
 

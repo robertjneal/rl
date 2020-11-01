@@ -61,7 +61,7 @@ class testbedTest {
     val agent =
       TabularAgent.rewardBlankSlate(environment, pickBest, sampleAverage, true)
 
-    val result: MeanOptimal = run(agent, 2000, 1000)
+    val result: MeansOptimals = run(agent, 2000, 1000)
 
     // reward is the true reward of the best action, mas o menos
     assertEquals(
