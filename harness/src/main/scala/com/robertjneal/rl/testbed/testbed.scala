@@ -3,12 +3,14 @@ package com.robertjneal.rl.testbed
 import breeze.linalg.{Vector => BreezeVector, _}
 import com.robertjneal.rl._
 import com.robertjneal.rl.agent.TabularAgent
+import com.robertjneal.rl.types.goal.Goal
 import com.robertjneal.rl.types._
+import com.robertjneal.rl.types.goal.Goal
 import java.util.concurrent.ThreadLocalRandom
 import org.apache.commons.math3.distribution._
 import org.apache.commons.math3.random.RandomGenerator
 
-case class MeanOptimal(
+case class MeansOptimals(
     meanRewards: DenseVector[Double],
     optimalActs: DenseVector[Double]
 )
@@ -63,11 +65,11 @@ def tenArmEnvironment(μ: Double = 0d): BanditEnvironment = {
   environment
 }
 
-def run[A](agent: TabularAgent[A], runs: Int, steps: Int): MeanOptimal = {
+def run[A <: Goal](agent: TabularAgent[A], runs: Int, steps: Int): MeansOptimals = {
   import scala.collection.parallel.ParSeq
   import scala.collection.parallel.CollectionConverters._
 
-  val meansOptimalsList: ParSeq[MeanOptimal] = (1 to runs).par.map { elem =>
+  val meansOptimalsList: ParSeq[MeansOptimals] = (1 to runs).par.map { elem =>
     def continueActing(
         actable: TabularAgent[A],
         counter: Int
@@ -78,7 +80,7 @@ def run[A](agent: TabularAgent[A], runs: Int, steps: Int): MeanOptimal = {
 
     val agentAtFinalState = continueActing(agent, steps)
 
-    MeanOptimal(
+    MeansOptimals(
       DenseVector(
         agentAtFinalState.history.map((_, reward) => reward.toDouble).toArray
       ),
@@ -90,15 +92,15 @@ def run[A](agent: TabularAgent[A], runs: Int, steps: Int): MeanOptimal = {
     )
   }
 
-  val meansOptimals: MeanOptimal =
-    meansOptimalsList.reduce((mo1: MeanOptimal, mo2: MeanOptimal) => {
-      MeanOptimal(
+  val meansOptimals: MeansOptimals =
+    meansOptimalsList.reduce((mo1: MeansOptimals, mo2: MeansOptimals) => {
+      MeansOptimals(
         mo1.meanRewards + mo2.meanRewards,
         mo1.optimalActs + mo2.optimalActs
       )
     })
 
-  MeanOptimal(
+  MeansOptimals(
     meansOptimals.meanRewards / runs.toDouble,
     meansOptimals.optimalActs / runs.toDouble
   )

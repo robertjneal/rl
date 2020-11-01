@@ -17,13 +17,6 @@ Part of the goal of this package is to have a reasonable model of the RL problem
 
 You can find the model in the [harness project](https://github.com/robertjneal/rl/tree/master/harness).
 
-### The Book
-
-I've started putting the output of the code for the book's figures and exercises in the repo. As I add them I'll update the list.
-
-* [Chapter 2](https://github.com/robertjneal/rl/blob/master/book/src/main/scala/bartosutton/exercise/two/two.md)
-* [Chapter 4](https://github.com/robertjneal/rl/blob/master/book/src/main/scala/bartosutton/exercise/four/four.md)
-
 ### How to Use the Code
 
 You need Dotty. So [follow this process](https://dotty.epfl.ch) to install Dotty. Then you can use this like 
@@ -34,11 +27,26 @@ In the future I'll include some examples on how to use the framework and various
 good example can be found in the function `bartosutton.exercise.two.figure2dot2`. As I add more algorithms, 
 I'll move them around to be consumed more like a library.
 
+#### How to use various pieces of the framework:
+* [The 10-armed testbed](https://github.com/robertjneal/rl/blob/master/harness/src/main/scala/com/robertjneal/rl/testbed/README.md)
+
+### The Book
+
+I've started putting the output of the code for the book's figures and exercises in the repo. As I add them I'll update the list.
+
+* [Chapter 2](https://github.com/robertjneal/rl/blob/master/book/src/main/scala/bartosutton/exercise/two/two.md)
+* [Chapter 4](https://github.com/robertjneal/rl/blob/master/book/src/main/scala/bartosutton/exercise/four/four.md)
+
 ### Some Features of Dotty Used in this Library
 
 #### Opaque Types
 
 This library leverages [Opaque Types](https://dotty.epfl.ch/docs/reference/other-new-features/opaques.html) pretty heavily. Opaque Types have a lot of nice features. See for example, [harness/src/main/scala/com/robertjneal/rl/types/Reward.scala](https://github.com/robertjneal/rl/blob/master/harness/src/main/scala/com/robertjneal/rl/types/Reward.scala). In addition to being able to provide type safety at compile time without overhead costs of boxing, it allows for easily adding operations. It would be nice if the Opaque Type could "inherit" the operations of the type it is aliasing, but still a wonderful feature nonetheless, especially in libraries where there are a lot of numeric operations, like a reinforcement library. Without Opaque Types we would need to either have classes for each type (or Value Classes in Scala 2) or use the primitive types. The former has a lot of overhead, and the latter is confusing.
+
+#### Union Types
+
+Because Opaque Types cannot inherit from other types, union types come in handy when you want to restrict a class with a type
+parameter to some number of Opaque Types. You can see an example in the [Updaters class](https://github.com/robertjneal/rl/blob/master/harness/src/main/scala/com/robertjneal/rl/updater/Updaters.scala#L7) which uses the Union Type [Goal](https://github.com/robertjneal/rl/blob/master/harness/src/main/scala/com/robertjneal/rl/types/goal/Goal.scala).
 
 #### Trait Parameters
 
