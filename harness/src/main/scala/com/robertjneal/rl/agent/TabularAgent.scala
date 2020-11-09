@@ -38,7 +38,10 @@ case class TabularAgent[A <: Goal](
     )
     val (environmentReward, updatedEnvironment) = e.act(action)
     val reward = temporalDifference.map{ td => Reward(td.stepSize * table(e.state)(action).asInstanceOf[Reward].toDouble)}.getOrElse(environmentReward)
-    val updates: Map[Action, A] = if isTemporalDifference && isExploratory then table(e.state)
+
+    val shouldUpdateValues = !(isTemporalDifference && isExploratory)
+
+    val updates: Map[Action, A] = if !shouldUpdateValues then table(e.state)
       else updater(
         table(e.state),
         action,
