@@ -101,7 +101,7 @@ class ActionSelectorsTest {
     ): Seq[Action] = {
       if (n == i) actionsSelected
       else {
-        val action =
+        val (action, _) =
           upperConfidenceBound(c, OneState)(Step(i + 1), actionSteps)(
             actionRewards
           )
@@ -144,7 +144,7 @@ class ActionSelectorsTest {
     ): Seq[Action] = {
       if (n == i) actionsSelected
       else {
-        val action =
+        val (action, _) =
           upperConfidenceBound(c, OneState)(Step(i + 1), actionSteps)(
             actionRewards
           )

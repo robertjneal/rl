@@ -2,6 +2,7 @@ package com.robertjneal.rl.testbed
 
 import breeze.linalg.sum
 import com.robertjneal.rl._
+import com.robertjneal.rl.actionselector.RewardSelector
 import com.robertjneal.rl.agent._
 import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
@@ -35,11 +36,15 @@ class testbedTest {
       threeActions.map(_._1).toVector,
       threeActions.toMap
     )
-    def pickBest(step: Step, actionsSteps: Map[State, Map[Action, Step]])(
+    def pickBest: RewardSelector = {
+      new RewardSelector {
+        def apply(step: Step, actionsSteps: Map[State, Map[Action, Step]])(
         map: Map[Action, Reward]
-    ): (Action, IsExploratory) = {
-      import Ordering.Double.TotalOrdering
-      (map.maxBy(_._2.toDouble)._1, false)
+        ): (Action, IsExploratory) = {
+          import Ordering.Double.TotalOrdering
+          (map.maxBy(_._2.toDouble)._1, false)
+        }
+      }
     }
     def sampleAverage(
         actionRewards: Map[Action, Reward],

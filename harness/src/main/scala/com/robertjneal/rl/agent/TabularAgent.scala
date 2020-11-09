@@ -1,6 +1,7 @@
 package com.robertjneal.rl.agent
 
 import com.robertjneal.rl.Environment
+import com.robertjneal.rl.actionselector._
 import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
 import com.robertjneal.rl.updater._
@@ -8,7 +9,7 @@ import scala.util.Try
 
 case class TabularAgent[A <: Goal](
     e: Environment,
-    actionSelector: Selector[A],
+    actionSelector: ActionSelector[A],
     updater: Updater[A],
     step: Step,
     actionSteps: Map[State, Map[Action, Step]],
@@ -22,12 +23,12 @@ case class TabularAgent[A <: Goal](
   
   def act: TabularAgent[A] = {
     val (action, isExploratory): (Action, Boolean) = actionSelector match {
-      case rewardSelector: RewardSelector[_] => 
-        rewardSelector.actionSelector(step, actionSteps)(
+      case rewardSelector: RewardSelector => 
+        rewardSelector(step, actionSteps)(
           table.asInstanceOf[Map[State, Map[Action, Reward]]](e.state)
         )
-      case preferenceSelector: PreferenceSelector[_] => 
-        preferenceSelector.actionSelector(
+      case preferenceSelector: PreferenceSelector => 
+        preferenceSelector(
           table.asInstanceOf[Map[State, Map[Action, Preference]]](e.state)
         )
     }
@@ -35,7 +36,7 @@ case class TabularAgent[A <: Goal](
     val averageReward = Reward(
       totalReward.toDouble / actionSteps(e.state).values.reduce(_ + _).toInt
     )
-    val (environmentReward, updatedEnvironment, endOfEpisode) = e.act(action)
+    val (environmentReward, updatedEnvironment) = e.act(action)
     val reward = temporalDifference.map{ td => Reward(td.stepSize * table(e.state)(action).asInstanceOf[Reward].toDouble)}.getOrElse(environmentReward)
     val updates: Map[Action, A] = if isTemporalDifference && isExploratory then table(e.state)
       else updater(
@@ -79,7 +80,7 @@ case class TabularAgent[A <: Goal](
 object TabularAgent {
   def blankSlate[A <: Goal](
       e: Environment,
-      actionSelector: Selector[A],
+      actionSelector: ActionSelector[A],
       updater: Updater[A],
       initialGoalValue: A,
       recordHistory: Boolean = false
@@ -104,16 +105,13 @@ object TabularAgent {
 
   def rewardBlankSlate(
       e: Environment,
-      actionSelector: (
-          Step,
-          Map[State, Map[Action, Step]]
-      ) => Map[Action, Reward] => (Action, Boolean),
+      actionSelector: RewardSelector,
       updater: Updater[Reward],
       recordHistory: Boolean = false
   ): TabularAgent[Reward] = {
     blankSlate[Reward](
       e,
-      RewardSelector(actionSelector),
+      actionSelector,
       updater,
       Reward(0),
       recordHistory
@@ -122,13 +120,13 @@ object TabularAgent {
 
   def preferenceBlankSlate(
       e: Environment,
-      actionSelector: Map[Action, Preference] => (Action, Boolean),
+      actionSelector: PreferenceSelector,
       updater: Updater[Preference],
       recordHistory: Boolean = false
   ): TabularAgent[Preference] = {
     blankSlate[Preference](
       e,
-      PreferenceSelector(actionSelector),
+      actionSelector,
       updater,
       Preference(0),
       recordHistory

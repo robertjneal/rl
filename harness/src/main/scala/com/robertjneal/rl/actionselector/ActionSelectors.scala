@@ -4,6 +4,21 @@ import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
 import scala.util.Random
 
+sealed trait ActionSelector[A]
+
+trait RewardSelector extends ActionSelector[Reward] {
+  def apply(
+    step: Step,
+    stateActionSteps: Map[State, Map[Action, Step]]
+  )(actionRewards: Map[Action, Reward]): (Action, IsExploratory)
+}
+
+trait PreferenceSelector extends ActionSelector[Preference] {
+  def apply(
+    actionPreferences: Map[Action, Preference]
+  ): (Action, IsExploratory)
+}
+
 def softMaxProbabilities(
     actionPreferences: Map[Action, Preference]
 ): Map[Action, Probability] = {
@@ -22,47 +37,65 @@ def softMaxProbabilities(
   actionProbabilities
 }
 
-def softMax(actionPreferences: Map[Action, Preference]): (Action, IsExploratory) = {
-  val actionProbabilities = softMaxProbabilities(actionPreferences).toList.sortBy { (_, probability) => -probability.toDouble}
-  val action = Probability.pickWithProbabilty[Action](Probability.random, actionProbabilities)
-  (action, actionProbabilities.headOption.map(_ == action).getOrElse(false))
+def softMax: PreferenceSelector = {
+  new PreferenceSelector {
+    def apply(actionPreferences: Map[Action, Preference]): (Action, IsExploratory) = {
+      import Ordering.Double.TotalOrdering
+      val actionProbabilities = softMaxProbabilities(actionPreferences).toList.sortBy { (_, probability) => -probability.toDouble}
+      val action = Probability.pickWithProbabilty[Action](Probability.random, actionProbabilities)
+      (action, actionProbabilities.headOption.map(_ == action).getOrElse(false))
+    }
+  }
 }
 
-def upperConfidenceBound(c: Double, state: State)(
+def upperConfidenceBound(c: Double, state: State): RewardSelector = {
+  new RewardSelector { 
+    def apply(
     step: Step,
     actionSteps: Map[State, Map[Action, Step]]
-)(actionRewards: Map[Action, Reward]): Action = {
-  def valueTransformer(action: Action, reward: Reward): Double = {
-    val actionStep = actionSteps
-      .getOrElse(state, Map(action -> Step(1)))
-      .getOrElse(action, Step(1))
-    reward.toDouble + c * Math.sqrt(
-      Math.log(step.toDouble) / actionStep.toDouble
-    )
-  }
+    )(actionRewards: Map[Action, Reward]): (Action, IsExploratory) = {
+      def valueTransformer(action: Action, reward: Reward): Double = {
+        val actionStep = actionSteps
+          .getOrElse(state, Map(action -> Step(1)))
+          .getOrElse(action, Step(1))
+        reward.toDouble + c * Math.sqrt(
+          Math.log(step.toDouble) / actionStep.toDouble
+        )
+      }
 
-  val maxima = collectMaxima(valueTransformer, actionRewards)
-  val (action, _): (Action, Reward) = maxima(Random.nextInt(maxima.length))
-  action
+      val maxima = collectMaxima(valueTransformer, actionRewards)
+      val (action, _): (Action, Reward) = maxima(Random.nextInt(maxima.length))
+      (action, false)
+    }
+  }
 }
 
 def εGreedy(
     ε: Probability
-)(step: Step, actionSteps: Map[State, Map[Action, Step]])(
-    actionRewards: Map[Action, Reward]
-): (Action, IsExploratory) = {
+): RewardSelector = {
   def valueTransformer(action: Action, reward: Reward): Double =
     reward.toDouble
 
-  val shouldExplore = ε > Probability.Never && ε.wonLottery() 
-  if (shouldExplore) {
-    val array = actionRewards.toArray
-    val (action, _): (Action, Reward) = array(Random.nextInt(array.size))
-    (action, true)
-  } else {
-    val maxima = collectMaxima(valueTransformer, actionRewards)
-    val (action, _): (Action, Reward) = maxima(Random.nextInt(maxima.length))
-    (action, false)
+  new RewardSelector {
+    def apply(
+      step: Step,
+      stateActionSteps: Map[State, Map[Action, Step]]
+    )(actionRewards: Map[Action, Reward]): (Action, IsExploratory) = {
+      val shouldExplore = ε > Probability.Never && ε.wonLottery() 
+      val actionIsExploratory: (Action, IsExploratory) = {
+        if (shouldExplore) {
+          val array = actionRewards.toArray
+          val (action, _): (Action, Reward) = array(Random.nextInt(array.size))
+          (action, true)
+        } else {
+          val maxima = collectMaxima(valueTransformer, actionRewards)
+          val (action, _): (Action, Reward) = maxima(Random.nextInt(maxima.length))
+          (action, false)
+        }
+      }
+
+      actionIsExploratory
+    }
   }
 }
 

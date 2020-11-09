@@ -4,7 +4,7 @@ import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
 
 trait Environment(val possibleStateActions: Map[State, Vector[Action]], val state: State) {
-  def act(a: Action): (Reward, Environment, Boolean)
+  def act(a: Action): (Reward, Environment)
   def isOptimal(a: Action): OptimalAct
 }
 
@@ -20,10 +20,10 @@ case class BanditEnvironment(
   import Ordering.Double.TotalOrdering
   require(possibleStateActions.size == 1)
 
-  def act(a: Action): (Reward, Environment, Boolean) = {
+  def act(a: Action): (Reward, Environment) = {
     val (reward, updatedRewardFunction): (Reward, RandomReward) = actionRewards(a).sample
     val updatedActionRewards = actionRewards.updated(a, updatedRewardFunction)
-    (reward, this.copy(actionRewards = updatedActionRewards), true)
+    (reward, this.copy(actionRewards = updatedActionRewards))
   }
 
   // TODO: memoize when stationary?
