@@ -107,7 +107,7 @@ def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     } 
     val agent = TabularAgent[Reward](
       environment,
-      RewardSelector(εGreedy(ε)),
+      εGreedy(ε),
       average(sampleAverage),
       Step(1),
       initialActionSteps,
@@ -173,7 +173,7 @@ def figure2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     } 
     val agent = TabularAgent[Preference](
       environment,
-      PreferenceSelector(softMax),
+      softMax,
       stochasticGradientAscent(stepSize, baseline),
       Step(1),
       initialActionSteps,
@@ -314,7 +314,7 @@ def figure2dot6(debug: Boolean = false) = {
       } 
       val agent = TabularAgent[Reward](
         environment,
-        RewardSelector(εGreedy(Probability.unsafe(0.1))),
+        εGreedy(Probability.unsafe(0.1)),
         average(sampleAverage),
         Step(1),
         initialActionSteps,
@@ -448,7 +448,7 @@ def exercise2dot11(runs: Integer = 2000, steps: Integer = 200000, includeεGreed
       } 
       val agent = TabularAgent[Reward](
         environment,
-        RewardSelector(εGreedy(Probability.unsafe(0.1))),
+        εGreedy(Probability.unsafe(0.1)),
         average(exponentialRecencyWeightedAverage(0.1)),
         Step(1),
         initialActionSteps,

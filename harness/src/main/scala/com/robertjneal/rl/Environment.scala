@@ -35,15 +35,13 @@ case class BanditEnvironment(
 
   // TODO: memoize when stationary?
   private def maxReward: Reward = {
-    Reward(actionTrueRewards.map {
-      (r, _) => r.toDouble
-    }.max)
+    val (reward, _) = actionTrueRewards.maxBy{ (r, _) => r }
+    reward
   }
 
   // TODO: memoize when stationary?
-  private def optimalActs: Vector[Action] = {
+  private def optimalActs: Vector[Action] = 
     actionTrueRewards
       .filter { (r, _) => r == maxReward }
       .map { (_, a) => a }
-  }
 }

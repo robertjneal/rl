@@ -74,4 +74,80 @@ class AgentTest {
         .sum - actionRewards.size.toLong
     )
   }
+
+  @Test
+  def actTemporalDifference() = {
+    case class TestEnvironment(stateActions: Map[State, Vector[Action]], override val state: State) 
+    extends Environment(stateActions, state) {
+      def act(a: Action): (Reward, Environment) = {
+        val reward = Reward(
+          a match {
+            case Action("A") => 1
+            case Action("B") => 2
+            case Action("C") => 3
+          }
+        )
+        val newState = 
+          a match {
+            case Action("A") => State("2")
+            case Action("B") => State("3")
+            case Action("C") => State("3")
+            case Action("D") => State("3")
+          }
+        (reward, this.copy(state = newState))
+      }
+      def isOptimal(a: Action): OptimalAct = OptimalAct(true)
+    }
+
+    val stateActions: Map[State, Vector[Action]] = Map(
+      State("1") -> Vector(Action("A"), Action("B")),
+      State("2") -> Vector(Action("C")),
+      State("3") -> Vector(Action("D"))
+    )
+    val e = TestEnvironment(stateActions, State("1")) 
+
+    val agent = TabularAgent(
+      e,
+      εGreedy(Probability.Never),
+      average(sampleAverage),
+      Step(1),
+      Map(
+        State("1") -> Map(
+          Action("A") -> Step(2),
+          Action("B") -> Step(2)
+        ),
+        State("2") -> Map(
+          Action("C") -> Step(2)
+        ),
+        State("3") -> Map(
+          Action("D") -> Step(2)
+        )
+      ),
+      Map(
+        State("1") -> Map(
+          Action("A") -> Reward(0.5),
+          Action("B") -> Reward(0.25)
+        ),
+        State("2") -> Map(
+          Action("C") -> Reward(1)
+        ),
+        State("3") -> Map(
+          Action("D") -> Reward(1)
+        )
+      )
+    )
+  
+    // Values are initialized properly
+    assertEquals(Reward(0.5), agent.table(State("1"))(Action("A")))
+    val agent2 = agent.act
+    println(agent2.e)
+    val agent3 = agent2.act
+    // Value is updated properly
+    assertEquals(Reward(0.75), agent3.table(State("1"))(Action("A")))
+    val agent4 = agent3.copy(e = TestEnvironment(stateActions, State("1")))
+    val agent5 = agent4.act
+    // End state is not updated if we switch states
+    assertEquals(Reward(1), agent5.table(State("3"))(Action("D")))
+
+  }
 }
