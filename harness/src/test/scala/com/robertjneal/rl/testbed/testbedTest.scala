@@ -37,9 +37,9 @@ class testbedTest {
     )
     def pickBest(step: Step, actionsSteps: Map[State, Map[Action, Step]])(
         map: Map[Action, Reward]
-    ): Action = {
+    ): (Action, IsExploratory) = {
       import Ordering.Double.TotalOrdering
-      map.maxBy(_._2.toDouble)._1
+      (map.maxBy(_._2.toDouble)._1, false)
     }
     def sampleAverage(
         actionRewards: Map[Action, Reward],

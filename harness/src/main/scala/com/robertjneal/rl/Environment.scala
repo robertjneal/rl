@@ -4,7 +4,7 @@ import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
 
 trait Environment(val possibleStateActions: Map[State, Vector[Action]], val state: State) {
-  def act(a: Action): (Reward, Environment)
+  def act(a: Action): (Reward, Environment, Boolean)
   def isOptimal(a: Action): OptimalAct
 }
 
@@ -20,10 +20,10 @@ case class BanditEnvironment(
   import Ordering.Double.TotalOrdering
   require(possibleStateActions.size == 1)
 
-  def act(a: Action): (Reward, Environment) = {
+  def act(a: Action): (Reward, Environment, Boolean) = {
     val (reward, updatedRewardFunction): (Reward, RandomReward) = actionRewards(a).sample
     val updatedActionRewards = actionRewards.updated(a, updatedRewardFunction)
-    (reward, this.copy(actionRewards = updatedActionRewards))
+    (reward, this.copy(actionRewards = updatedActionRewards), true)
   }
 
   // TODO: memoize when stationary?
@@ -35,15 +35,13 @@ case class BanditEnvironment(
 
   // TODO: memoize when stationary?
   private def maxReward: Reward = {
-    Reward(actionTrueRewards.map {
-      (r, _) => r.toDouble
-    }.max)
+    val (reward, _) = actionTrueRewards.maxBy{ (r, _) => r }
+    reward
   }
 
   // TODO: memoize when stationary?
-  private def optimalActs: Vector[Action] = {
+  private def optimalActs: Vector[Action] = 
     actionTrueRewards
       .filter { (r, _) => r == maxReward }
       .map { (_, a) => a }
-  }
 }

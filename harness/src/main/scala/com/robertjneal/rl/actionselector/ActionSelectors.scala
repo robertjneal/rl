@@ -22,10 +22,10 @@ def softMaxProbabilities(
   actionProbabilities
 }
 
-def softMax(actionPreferences: Map[Action, Preference]): Action = {
-  val actionProbabilities = softMaxProbabilities(actionPreferences).toList
-
-  Probability.pickWithProbabilty[Action](Probability.random, actionProbabilities)
+def softMax(actionPreferences: Map[Action, Preference]): (Action, IsExploratory) = {
+  val actionProbabilities = softMaxProbabilities(actionPreferences).toList.sortBy { (_, probability) => -probability.toDouble}
+  val action = Probability.pickWithProbabilty[Action](Probability.random, actionProbabilities)
+  (action, actionProbabilities.headOption.map(_ == action).getOrElse(false))
 }
 
 def upperConfidenceBound(c: Double, state: State)(
@@ -50,18 +50,19 @@ def εGreedy(
     ε: Probability
 )(step: Step, actionSteps: Map[State, Map[Action, Step]])(
     actionRewards: Map[Action, Reward]
-): Action = {
+): (Action, IsExploratory) = {
   def valueTransformer(action: Action, reward: Reward): Double =
     reward.toDouble
 
-  if (ε > Probability.Never && ε.wonLottery()) {
+  val shouldExplore = ε > Probability.Never && ε.wonLottery() 
+  if (shouldExplore) {
     val array = actionRewards.toArray
     val (action, _): (Action, Reward) = array(Random.nextInt(array.size))
-    action
+    (action, true)
   } else {
     val maxima = collectMaxima(valueTransformer, actionRewards)
     val (action, _): (Action, Reward) = maxima(Random.nextInt(maxima.length))
-    action
+    (action, false)
   }
 }
 

@@ -30,7 +30,7 @@ class ActionSelectorsTest {
         Step(0),
         Map.empty[State, Map[Action, Step]]
       )(actionRewards)
-      assertEquals(bestAction, result)
+      assertEquals((bestAction, false), result)
     }
   }
 
@@ -48,7 +48,7 @@ class ActionSelectorsTest {
         )(actionRewards)
 
     val bestChosen =
-      actionsSelected.count(_ == bestAction) / iterations.toDouble
+      actionsSelected.count{(action, _) => action == bestAction} / iterations.toDouble
     val expected = 0.9 + (.1 / 3.0)
     assertEquals(expected, bestChosen, acceptableMargin)
   }
@@ -73,16 +73,17 @@ class ActionSelectorsTest {
         )(threeGreedyActions)
 
     val bestChosen =
-      actionsSelected.count(_ == bestAction) / iterations.toDouble
+      actionsSelected.count{(action, _) => action == bestAction} / iterations.toDouble
     val best2Chosen =
-      actionsSelected.count(_ == bestAction2) / iterations.toDouble
+      actionsSelected.count{(action, _) => action == bestAction2} / iterations.toDouble
     val best3Chosen =
-      actionsSelected.count(_ == bestAction3) / iterations.toDouble
+      actionsSelected.count{(action, _) => action == bestAction3} / iterations.toDouble
 
     val expected = 1d / 3d
     assertEquals(expected, bestChosen, acceptableMargin)
     assertEquals(expected, best2Chosen, acceptableMargin)
     assertEquals(expected, best3Chosen, acceptableMargin)
+    assert(actionsSelected.forall{(_, isExploratory) => !isExploratory})
   }
 
   /*
@@ -278,7 +279,7 @@ class ActionSelectorsTest {
     val initialCounts: Map[Action, Int] = input1.view.mapValues { x => 0 }.toMap
 
     val counts = (0 to runs).foldLeft(initialCounts) { (acc, x) =>
-      val chosenAction = softMax(input1)
+      val (chosenAction, _) = softMax(input1)
       acc.updated(chosenAction, acc(chosenAction) + 1)
     }
 
@@ -307,7 +308,7 @@ class ActionSelectorsTest {
       )
 
     (0 to 1000).foreach { x =>
-      assertEquals(action3, softMax(input2))
+      assertEquals((action3, false), softMax(input2))
     }
   }
 }

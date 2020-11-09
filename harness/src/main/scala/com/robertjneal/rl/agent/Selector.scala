@@ -9,9 +9,9 @@ case class RewardSelector[A <: Reward](
     actionSelector: (
         Step,
         Map[State, Map[Action, Step]]
-    ) => Map[Action, Reward] => Action
+    ) => Map[Action, Reward] => (Action, Boolean)
 ) extends Selector[A]
 
 case class PreferenceSelector[A <: Preference](
-    actionSelector: Map[Action, Preference] => Action
+    actionSelector: Map[Action, Preference] => (Action, Boolean)
 ) extends Selector[A]
