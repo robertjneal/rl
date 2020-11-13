@@ -37,15 +37,11 @@ def softMaxProbabilities(
   actionProbabilities
 }
 
-def softMax: PreferenceSelector = {
-  new PreferenceSelector {
-    def apply(actionPreferences: Map[Action, Preference]): (Action, IsExploratory) = {
-      import Ordering.Double.TotalOrdering
-      val actionProbabilities = softMaxProbabilities(actionPreferences).toList.sortBy { (_, probability) => -probability.toDouble}
-      val action = Probability.pickWithProbabilty[Action](Probability.random, actionProbabilities)
-      (action, actionProbabilities.headOption.map(_ == action).getOrElse(false))
-    }
-  }
+def softMax: PreferenceSelector = (actionPreferences: Map[Action, Preference]) => {
+  import Ordering.Double.TotalOrdering
+  val actionProbabilities = softMaxProbabilities(actionPreferences).toList.sortBy { (_, probability) => -probability.toDouble}
+  val action = Probability.pickWithProbabilty[Action](Probability.random, actionProbabilities)
+  (action, actionProbabilities.headOption.map(_ == action).getOrElse(false))
 }
 
 def upperConfidenceBound(c: Double, state: State): RewardSelector = {
