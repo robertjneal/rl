@@ -25,8 +25,9 @@ class ActionSelectorsTest {
    */
   @Test
   def εGreedyTest() = {
+    val seededRandom = scala.util.Random(357)
     for (i <- 0 until 1000) {
-      val result = εGreedy(Probability.unsafe(0))(
+      val result = εGreedy(Probability.unsafe(0), seededRandom)(
         Step(0),
         Map.empty[State, Map[Action, Step]]
       )(actionRewards)
@@ -65,9 +66,10 @@ class ActionSelectorsTest {
     )) + (bestAction3 -> Reward(bestRewardValue))
 
     val iterations = 10000
+    val seededRandom = scala.util.Random(357)
     val actionsSelected =
       for (i <- 0 until iterations)
-        yield εGreedy(Probability.unsafe(0))(
+        yield εGreedy(Probability.unsafe(0), seededRandom)(
           Step(0),
           Map.empty[State, Map[Action, Step]]
         )(threeGreedyActions)
