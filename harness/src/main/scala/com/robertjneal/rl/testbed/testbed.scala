@@ -41,7 +41,7 @@ class ThreadLocalRandomGenerator extends RandomGenerator {
 }
 
 def tenArmEnvironment(μ: Double = 0d): BanditEnvironment = {
-  val random = new NormalDistribution(μ, 1)
+  val random = NormalDistribution(μ, 1)
   val actions: Vector[Action] =
     Range(0, 9).map(n => Action(n.toString)).toVector
   val actionValues: Map[Action, RandomReward] = actions
@@ -49,7 +49,7 @@ def tenArmEnvironment(μ: Double = 0d): BanditEnvironment = {
       (
         a,
         StationaryDistribution(
-          new NormalDistribution(
+          NormalDistribution(
             ThreadLocalRandomGenerator(),
             random.sample,
             1
