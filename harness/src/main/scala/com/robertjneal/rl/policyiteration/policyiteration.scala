@@ -29,7 +29,7 @@ private[policyiteration] def expectedUpdate(
   import Ordering.Double.TotalOrdering
   if (stateActionProbabilities.isEmpty) ExpectationHistory(Map.empty[State, Reward], history)
   else {
-    val currentStateValues = stateValues.getOrElse(
+    val currentStateValues: Map[State, Reward] = stateValues.getOrElse(
       stateActionProbabilities.view.mapValues(r => Reward(0)).toMap
     )
     val currentΔs = Δs.getOrElse(
@@ -83,8 +83,9 @@ private[policyiteration] def expectedUpdate(
       logFrequency > 0 && ((step < logMaxSteps && step % logFrequency == 0) || stopEvaluating)
     ) {
       println(s"==== step: $step =====")
-      currentStateValues.toList.sortBy(_._1.toString).foreach { (s, r) =>
-        println(s"State: ${s}, Value: ${r}")
+      val l: List[(State, Reward)] = currentStateValues.toList.sortBy{(s: State, _) => s}(State.Ordering)
+      l.foreach { (s, r) =>
+        println(s"State: ${s},\t Value: ${r}")
       }
     }
 
@@ -145,7 +146,7 @@ def policyImprovement(
     θ: Double = 0.001
 ): (Boolean, Map[State, List[Action]]) = {
   val maxStateActions: Map[State, List[Action]] = π.map {
-    case (state, actionProbabilities) => {
+    case (state: State, actionProbabilities) => {
       val maxActions: Map[Action, Reward] = actionProbabilities.foldLeft(
         Map.empty[Action, Reward]
       )((maxima, elem) => {
@@ -204,7 +205,7 @@ def policyIteration(
     )
     val (stable, maxActions) =
       policyImprovement(πPrime, stateTransitions, policyValues)
-    val newPolicy = maxActions.view
+    val newPolicy: Map[State, List[ActionProbability]] = maxActions.view
       .mapValues(actions =>
         actions.map(
           ActionProbability(_, Probability.evenProbability(actions.length))
@@ -247,7 +248,7 @@ def valueIteration(
       )
 
       val policy: Map[State, List[ActionProbability]] = stateActionProbabilities.map {
-        case (state, actionProbabilities) => {
+        case (state: State, actionProbabilities) => {
           state -> {
             val actionRewards
                 : Map[Action, Reward] = actionProbabilities.map { (action, _) =>

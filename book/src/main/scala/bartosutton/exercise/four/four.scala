@@ -8,75 +8,75 @@ import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
 
 val example1GridTransitions: Map[StateAction, List[ProbabilityState]] = Map(
-    StateAction(State("1"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("1"))),
-    StateAction(State("1"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("5"))),
-    StateAction(State("1"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("T"))),
-    StateAction(State("1"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("2"))),
+    StateAction(State(1), Action("up")) -> List(ProbabilityState(Probability.Certain, State(1))),
+    StateAction(State(1), Action("down")) -> List(ProbabilityState(Probability.Certain, State(5))),
+    StateAction(State(1), Action("left")) -> List(ProbabilityState(Probability.Certain, State("T"))),
+    StateAction(State(1), Action("right")) -> List(ProbabilityState(Probability.Certain, State(2))),
     
-    StateAction(State("2"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("2"))),
-    StateAction(State("2"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("6"))),
-    StateAction(State("2"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("1"))),
-    StateAction(State("2"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("3"))),
+    StateAction(State(2), Action("up")) -> List(ProbabilityState(Probability.Certain, State(2))),
+    StateAction(State(2), Action("down")) -> List(ProbabilityState(Probability.Certain, State(6))),
+    StateAction(State(2), Action("left")) -> List(ProbabilityState(Probability.Certain, State(1))),
+    StateAction(State(2), Action("right")) -> List(ProbabilityState(Probability.Certain, State(3))),
     
-    StateAction(State("3"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("2"))),
-    StateAction(State("3"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("7"))),
-    StateAction(State("3"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("2"))),
-    StateAction(State("3"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("3"))),
+    StateAction(State(3), Action("up")) -> List(ProbabilityState(Probability.Certain, State(2))),
+    StateAction(State(3), Action("down")) -> List(ProbabilityState(Probability.Certain, State(7))),
+    StateAction(State(3), Action("left")) -> List(ProbabilityState(Probability.Certain, State(2))),
+    StateAction(State(3), Action("right")) -> List(ProbabilityState(Probability.Certain, State(3))),
     
-    StateAction(State("4"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("T"))),
-    StateAction(State("4"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("8"))),
-    StateAction(State("4"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("4"))),
-    StateAction(State("4"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("5"))),
+    StateAction(State(4), Action("up")) -> List(ProbabilityState(Probability.Certain, State("T"))),
+    StateAction(State(4), Action("down")) -> List(ProbabilityState(Probability.Certain, State(8))),
+    StateAction(State(4), Action("left")) -> List(ProbabilityState(Probability.Certain, State(4))),
+    StateAction(State(4), Action("right")) -> List(ProbabilityState(Probability.Certain, State(5))),
     
-    StateAction(State("5"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("1"))),
-    StateAction(State("5"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("9"))),
-    StateAction(State("5"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("4"))),
-    StateAction(State("5"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("6"))),
+    StateAction(State(5), Action("up")) -> List(ProbabilityState(Probability.Certain, State(1))),
+    StateAction(State(5), Action("down")) -> List(ProbabilityState(Probability.Certain, State(9))),
+    StateAction(State(5), Action("left")) -> List(ProbabilityState(Probability.Certain, State(4))),
+    StateAction(State(5), Action("right")) -> List(ProbabilityState(Probability.Certain, State(6))),
     
-    StateAction(State("6"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("2"))),
-    StateAction(State("6"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("10"))),
-    StateAction(State("6"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("5"))),
-    StateAction(State("6"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("7"))),
+    StateAction(State(6), Action("up")) -> List(ProbabilityState(Probability.Certain, State(2))),
+    StateAction(State(6), Action("down")) -> List(ProbabilityState(Probability.Certain, State(10))),
+    StateAction(State(6), Action("left")) -> List(ProbabilityState(Probability.Certain, State(5))),
+    StateAction(State(6), Action("right")) -> List(ProbabilityState(Probability.Certain, State(7))),
     
-    StateAction(State("7"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("3"))),
-    StateAction(State("7"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("11"))),
-    StateAction(State("7"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("6"))),
-    StateAction(State("7"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("7"))),
+    StateAction(State(7), Action("up")) -> List(ProbabilityState(Probability.Certain, State(3))),
+    StateAction(State(7), Action("down")) -> List(ProbabilityState(Probability.Certain, State(11))),
+    StateAction(State(7), Action("left")) -> List(ProbabilityState(Probability.Certain, State(6))),
+    StateAction(State(7), Action("right")) -> List(ProbabilityState(Probability.Certain, State(7))),
     
-    StateAction(State("8"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("4"))),
-    StateAction(State("8"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("12"))),
-    StateAction(State("8"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("8"))),
-    StateAction(State("8"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("9"))),
+    StateAction(State(8), Action("up")) -> List(ProbabilityState(Probability.Certain, State(4))),
+    StateAction(State(8), Action("down")) -> List(ProbabilityState(Probability.Certain, State(12))),
+    StateAction(State(8), Action("left")) -> List(ProbabilityState(Probability.Certain, State(8))),
+    StateAction(State(8), Action("right")) -> List(ProbabilityState(Probability.Certain, State(9))),
     
-    StateAction(State("9"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("5"))),
-    StateAction(State("9"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("13"))),
-    StateAction(State("9"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("8"))),
-    StateAction(State("9"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("10"))),
+    StateAction(State(9), Action("up")) -> List(ProbabilityState(Probability.Certain, State(5))),
+    StateAction(State(9), Action("down")) -> List(ProbabilityState(Probability.Certain, State(13))),
+    StateAction(State(9), Action("left")) -> List(ProbabilityState(Probability.Certain, State(8))),
+    StateAction(State(9), Action("right")) -> List(ProbabilityState(Probability.Certain, State(10))),
     
-    StateAction(State("10"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("6"))),
-    StateAction(State("10"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("14"))),
-    StateAction(State("10"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("9"))),
-    StateAction(State("10"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("11"))),
+    StateAction(State(10), Action("up")) -> List(ProbabilityState(Probability.Certain, State(6))),
+    StateAction(State(10), Action("down")) -> List(ProbabilityState(Probability.Certain, State(14))),
+    StateAction(State(10), Action("left")) -> List(ProbabilityState(Probability.Certain, State(9))),
+    StateAction(State(10), Action("right")) -> List(ProbabilityState(Probability.Certain, State(11))),
     
-    StateAction(State("11"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("7"))),
-    StateAction(State("11"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("T"))),
-    StateAction(State("11"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("10"))),
-    StateAction(State("11"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("11"))),
+    StateAction(State(11), Action("up")) -> List(ProbabilityState(Probability.Certain, State(7))),
+    StateAction(State(11), Action("down")) -> List(ProbabilityState(Probability.Certain, State("T"))),
+    StateAction(State(11), Action("left")) -> List(ProbabilityState(Probability.Certain, State(10))),
+    StateAction(State(11), Action("right")) -> List(ProbabilityState(Probability.Certain, State(11))),
     
-    StateAction(State("12"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("8"))),
-    StateAction(State("12"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("12"))),
-    StateAction(State("12"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("12"))),
-    StateAction(State("12"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("13"))),
+    StateAction(State(12), Action("up")) -> List(ProbabilityState(Probability.Certain, State(8))),
+    StateAction(State(12), Action("down")) -> List(ProbabilityState(Probability.Certain, State(12))),
+    StateAction(State(12), Action("left")) -> List(ProbabilityState(Probability.Certain, State(12))),
+    StateAction(State(12), Action("right")) -> List(ProbabilityState(Probability.Certain, State(13))),
     
-    StateAction(State("13"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("9"))),
-    StateAction(State("13"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("13"))),
-    StateAction(State("13"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("12"))),
-    StateAction(State("13"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("14"))),
+    StateAction(State(13), Action("up")) -> List(ProbabilityState(Probability.Certain, State(9))),
+    StateAction(State(13), Action("down")) -> List(ProbabilityState(Probability.Certain, State(13))),
+    StateAction(State(13), Action("left")) -> List(ProbabilityState(Probability.Certain, State(12))),
+    StateAction(State(13), Action("right")) -> List(ProbabilityState(Probability.Certain, State(14))),
     
-    StateAction(State("14"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("10"))),
-    StateAction(State("14"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("14"))),
-    StateAction(State("14"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("13"))),
-    StateAction(State("14"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("T"))),
+    StateAction(State(14), Action("up")) -> List(ProbabilityState(Probability.Certain, State(10))),
+    StateAction(State(14), Action("down")) -> List(ProbabilityState(Probability.Certain, State(14))),
+    StateAction(State(14), Action("left")) -> List(ProbabilityState(Probability.Certain, State(13))),
+    StateAction(State(14), Action("right")) -> List(ProbabilityState(Probability.Certain, State("T"))),
 
     StateAction(State("T"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("T"))),
     StateAction(State("T"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("T"))),
@@ -88,53 +88,52 @@ val example1GridTransitions: Map[StateAction, List[ProbabilityState]] = Map(
 def figure4dot1column1() = {
   val possibleActions: List[Action] = List("up", "down", "left", "right").map(Action(_))
   val actionProbabilities: List[ActionProbability] = possibleActions.map { ActionProbability(_, Probability.unsafe(0.25)) }
-  val randomPolicy: Map[State, List[ActionProbability]] = (1 to 14).map(state => (State(state.toString), actionProbabilities)).toMap.updated(State("T"), actionProbabilities)
-  val gridRewards: Action => Map[State, Reward] = (a: Action) => (1 to 14).map(state => (State(state.toString), Reward(-1))).toMap.updated(State("T"), Reward(0))
+  val randomPolicy: Map[State, List[ActionProbability]] = (1 to 14).map(state => (State(state), actionProbabilities)).toMap.updated(State("T"), actionProbabilities)
+  val gridRewards: Action => Map[State, Reward] = (a: Action) => (1 to 14).map(state => (State(state), Reward(-1))).toMap.updated(State("T"), Reward(0))
 
-  iterativePolicyEvaluation(randomPolicy, example1GridTransitions, gridRewards, γ = 1.0, logFrequency=10, logMaxSteps = 100)
+  iterativePolicyEvaluation(randomPolicy, example1GridTransitions, gridRewards, γ = 1.0, logFrequency=10, logMaxSteps = 100).toList.sortBy(_._1)(State.Ordering)
 }
 
 def exercise4dot2a() = {
   val possibleActions: List[Action] = List("up", "down", "left", "right").map(Action(_))
   val actionProbabilities: List[ActionProbability] = possibleActions.map { ActionProbability(_, Probability.unsafe(0.25)) }
-  val randomPolicy: Map[State, List[ActionProbability]] = (1 to 15).map(state => (State(state.toString), actionProbabilities)).toMap.updated(State("T"), actionProbabilities)
-  val gridRewards: Action => Map[State, Reward] = (a: Action) => (1 to 15).map(state => (State(state.toString), Reward(-1))).toMap.updated(State("T"), Reward(0))
+  val randomPolicy: Map[State, List[ActionProbability]] = (1 to 15).map(state => (State(state), actionProbabilities)).toMap.updated(State("T"), actionProbabilities)
+  val gridRewards: Action => Map[State, Reward] = (a: Action) => (1 to 15).map(state => (State(state), Reward(-1))).toMap.updated(State("T"), Reward(0))
 
-  val gridTransitions = example1GridTransitions ++ //.updated((State("13"), Action("down")), State("15")) ++ 
+  val gridTransitions = example1GridTransitions ++ 
     Map(
-      StateAction(State("15"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("13"))),
-      StateAction(State("15"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("15"))),
-      StateAction(State("15"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("12"))),
-      StateAction(State("15"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("14")))
+      StateAction(State(15), Action("up")) -> List(ProbabilityState(Probability.Certain, State(13))),
+      StateAction(State(15), Action("down")) -> List(ProbabilityState(Probability.Certain, State(15))),
+      StateAction(State(15), Action("left")) -> List(ProbabilityState(Probability.Certain, State(12))),
+      StateAction(State(15), Action("right")) -> List(ProbabilityState(Probability.Certain, State(14)))
     )
 
-
-  iterativePolicyEvaluation(randomPolicy, gridTransitions, gridRewards, γ = 1.0)
+  iterativePolicyEvaluation(randomPolicy, gridTransitions, gridRewards, γ = 1.0).toList.sortBy(_._1)(State.Ordering)
 }
 
 def exercise4dot2b() = {
   val possibleActions: List[Action] = List("up", "down", "left", "right").map(Action(_))
   val actionProbabilities: List[ActionProbability] = possibleActions.map { ActionProbability(_, Probability.unsafe(0.25)) }
-  val randomPolicy: Map[State, List[ActionProbability]] = (1 to 15).map(state => (State(state.toString), actionProbabilities)).toMap.updated(State("T"), actionProbabilities)
-  val gridRewards: Action => Map[State, Reward] = (a: Action) => (1 to 15).map(state => (State(state.toString), Reward(-1))).toMap.updated(State("T"), Reward(0))
+  val randomPolicy: Map[State, List[ActionProbability]] = (1 to 15).map(state => (State(state), actionProbabilities)).toMap.updated(State("T"), actionProbabilities)
+  val gridRewards: Action => Map[State, Reward] = (a: Action) => (1 to 15).map(state => (State(state), Reward(-1))).toMap.updated(State("T"), Reward(0))
 
-  val gridTransitions = example1GridTransitions.updated(StateAction(State("13"), Action("down")), List(ProbabilityState(Probability.Certain, State("15")))) ++ 
+  val gridTransitions = example1GridTransitions.updated(StateAction(State(13), Action("down")), List(ProbabilityState(Probability.Certain, State(15)))) ++ 
     Map(
-      StateAction(State("15"), Action("up")) -> List(ProbabilityState(Probability.Certain, State("13"))),
-      StateAction(State("15"), Action("down")) -> List(ProbabilityState(Probability.Certain, State("15"))),
-      StateAction(State("15"), Action("left")) -> List(ProbabilityState(Probability.Certain, State("12"))),
-      StateAction(State("15"), Action("right")) -> List(ProbabilityState(Probability.Certain, State("14")))
+      StateAction(State(15), Action("up")) -> List(ProbabilityState(Probability.Certain, State(13))),
+      StateAction(State(15), Action("down")) -> List(ProbabilityState(Probability.Certain, State(15))),
+      StateAction(State(15), Action("left")) -> List(ProbabilityState(Probability.Certain, State(12))),
+      StateAction(State(15), Action("right")) -> List(ProbabilityState(Probability.Certain, State(14)))
     )
 
 
-  iterativePolicyEvaluation(randomPolicy, gridTransitions, gridRewards, γ = 1.0)
+  iterativePolicyEvaluation(randomPolicy, gridTransitions, gridRewards, γ = 1.0).toList.sortBy(_._1)(State.Ordering)
 }
 
 def figure4dot1column2() = {
   val possibleActions: List[Action] = List("up", "down", "left", "right").map(Action(_))
   val actionProbabilities: List[ActionProbability] = possibleActions.map { ActionProbability(_, Probability.unsafe(0.25)) }
-  val randomPolicy: Map[State, List[ActionProbability]] = (1 to 14).map(state => (State(state.toString), actionProbabilities)).toMap.updated(State("T"), actionProbabilities)
-  val gridRewards: Action => Map[State, Reward] = (a: Action) => (1 to 14).map(state => (State(state.toString), Reward(-1))).toMap.updated(State("T"), Reward(0))
+  val randomPolicy: Map[State, List[ActionProbability]] = (1 to 14).map(state => (State(state), actionProbabilities)).toMap.updated(State("T"), actionProbabilities)
+  val gridRewards: Action => Map[State, Reward] = (a: Action) => (1 to 14).map(state => (State(state), Reward(-1))).toMap.updated(State("T"), Reward(0))
 
   val optimalPolicy = policyIteration(randomPolicy, example1GridTransitions, gridRewards, γ = 1.0, logFrequency = 15)
 
@@ -162,7 +161,7 @@ def jacksRentalCars(freeCar: Boolean = false, rentParking: Boolean = false) = {
   val realisticReturns = (0 to 10)
 
   val transitions: Map[StateAction, List[ProbabilityState]] = { for {
-    (s, aps) <- stateActionProbabilities
+    (s: State, aps) <- stateActionProbabilities
     ActionProbability(a, p) <- aps
   } yield {
     StateAction(s, a) -> {

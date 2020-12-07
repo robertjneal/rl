@@ -97,13 +97,13 @@ def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   )
   val environment = testbed.tenArmEnvironment()
 
-  val initialActionSteps = environment.possibleStateActions.map { 
-    case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
+  val initialActionSteps: Map[State, Map[Action, Step]] = environment.possibleStateActions.map { 
+    case (s: State, as) => s -> Map(as.map(_ -> Step(1)): _*) 
   }
 
   val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = εAndBiases.map((ε, bias) => { 
-    val initialTable = environment.possibleStateActions.map { 
-      case (s, as) => s -> Map(as.map(_ -> Reward(bias)): _*) 
+    val initialTable: Map[State, Map[Action, Reward]] = environment.possibleStateActions.map { 
+      case (s: State, as) => s -> Map(as.map(_ -> Reward(bias)): _*) 
     } 
     val agent = TabularAgent[Reward](
       environment,
@@ -164,12 +164,12 @@ def figure2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   val environment = testbed.tenArmEnvironment(4D)
 
   val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = fs.map((stepSize, baseline, name) => { 
-    val initialActionSteps = environment.possibleStateActions.map { 
-      case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
+    val initialActionSteps: Map[State, Map[Action, Step]] = environment.possibleStateActions.map { 
+      case (s: State, as) => s -> Map(as.map(_ -> Step(1)): _*) 
     }
   
-    val initialTable = environment.possibleStateActions.map { 
-      case (s, as) => s -> Map(as.map(_ -> Preference(0)): _*) 
+    val initialTable: Map[State, Map[Action, Preference]] = environment.possibleStateActions.map { 
+      case (s: State, as) => s -> Map(as.map(_ -> Preference(0)): _*) 
     } 
     val agent = TabularAgent[Preference](
       environment,
@@ -305,12 +305,12 @@ def figure2dot6(debug: Boolean = false) = {
   val D: (String, Seq[(Double, Double)]) = (
     "ε-greedy(0.1)", 
     is.map{ i => {
-      val initialActionSteps = environment.possibleStateActions.map { 
-        case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
+      val initialActionSteps: Map[State, Map[Action, Step]] = environment.possibleStateActions.map { 
+        case (s: State, as) => s -> Map(as.map(_ -> Step(1)): _*) 
       }
   
-      val initialTable = environment.possibleStateActions.map { 
-        case (s, as) => s -> Map(as.map(_ -> Reward(i)): _*) 
+      val initialTable: Map[State, Map[Action, Reward]] = environment.possibleStateActions.map { 
+        case (s: State, as) => s -> Map(as.map(_ -> Reward(i)): _*) 
       } 
       val agent = TabularAgent[Reward](
         environment,
@@ -439,12 +439,12 @@ def exercise2dot11(runs: Integer = 2000, steps: Integer = 200000, includeεGreed
   def D: (String, Seq[(Double, Double)]) = (
     "ε-greedy(0.1)", 
     is.map{ i => {
-      val initialActionSteps = environment.possibleStateActions.map { 
-        case (s, as) => s -> Map(as.map(_ -> Step(1)): _*) 
+      val initialActionSteps: Map[State, Map[Action, Step]] = environment.possibleStateActions.map { 
+        case (s: State, as) => s -> Map(as.map(_ -> Step(1)): _*) 
       }
   
-      val initialTable = environment.possibleStateActions.map { 
-        case (s, as) => s -> Map(as.map(_ -> Reward(i)): _*) 
+      val initialTable: Map[State, Map[Action, Reward]] = environment.possibleStateActions.map { 
+        case (s: State, as) => s -> Map(as.map(_ -> Reward(i)): _*) 
       } 
       val agent = TabularAgent[Reward](
         environment,
