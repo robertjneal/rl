@@ -90,10 +90,10 @@ object TabularAgent {
       initialGoalValue: A,
       recordHistory: Boolean = false
   ): TabularAgent[A] = {
-    val initialActionSteps = e.possibleStateActions.map { (s, as) =>
+    val initialActionSteps: Map[State, Map[Action, Step]] = e.possibleStateActions.map { (s: State, as) =>
       s -> Map(as.map(_ -> Step(1)): _*)
     }
-    val initialTable = e.possibleStateActions.map { (s, as) =>
+    val initialTable: Map[State, Map[Action, A]] = e.possibleStateActions.map { (s: State, as) =>
       s -> Map(as.map(_ -> initialGoalValue): _*)
     }
 

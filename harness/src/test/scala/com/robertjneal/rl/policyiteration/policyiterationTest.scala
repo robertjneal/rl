@@ -8,7 +8,7 @@ import org.junit.Assert._
 class policyIterationTest {
   @Test
   def expectedUpdateNoDiscountTest() = {
-    val stateActionProbabilities = Map(
+    val stateActionProbabilities: Map[State, List[ActionProbability]] = Map(
       State("S1") -> List(
         ActionProbability(Action("A1"), Probability.CoinToss),
         ActionProbability(Action("A2"), Probability.CoinToss)
@@ -57,15 +57,15 @@ class policyIterationTest {
     )
     def reward(action: Action)(state: State): Reward = {
       (action, state) match {
-        case (Action("A1"), State("S1")) => Reward(1)
-        case (Action("A1"), State("S2")) => Reward(2)
-        case (Action("A1"), State("S3")) => Reward(3)
-        case (Action("A2"), State("S1")) => Reward(2)
-        case (Action("A2"), State("S2")) => Reward(4)
-        case (Action("A2"), State("S3")) => Reward(5)
-        case (Action("A3"), State("S1")) => Reward(0.5)
-        case (Action("A3"), State("S2")) => Reward(1)
-        case (Action("A3"), State("S3")) => Reward(1.5)
+        case (Action("A1"), StateString("S1")) => Reward(1)
+        case (Action("A1"), StateString("S2")) => Reward(2)
+        case (Action("A1"), StateString("S3")) => Reward(3)
+        case (Action("A2"), StateString("S1")) => Reward(2)
+        case (Action("A2"), StateString("S2")) => Reward(4)
+        case (Action("A2"), StateString("S3")) => Reward(5)
+        case (Action("A3"), StateString("S1")) => Reward(0.5)
+        case (Action("A3"), StateString("S2")) => Reward(1)
+        case (Action("A3"), StateString("S3")) => Reward(1.5)
         case (_, _)                      => Reward(0)
       }
     }
@@ -104,7 +104,7 @@ class policyIterationTest {
 
   @Test
   def expectedUpdateWithDiscountTest() = {
-    val stateActionProbabilities = Map(
+    val stateActionProbabilities: Map[State, List[ActionProbability]] = Map(
       State("S1") -> List(
         ActionProbability(Action("A1"), Probability.CoinToss),
         ActionProbability(Action("A2"), Probability.CoinToss)
@@ -140,12 +140,12 @@ class policyIterationTest {
     )
     def reward(action: Action)(state: State): Reward = {
       (action, state) match {
-        case (Action("A1"), State("S2")) => Reward(1)
-        case (Action("A2"), State("S3")) => Reward(3)
-        case (Action("A3"), State("S1")) => Reward(2)
-        case (Action("A4"), State("S3")) => Reward(4)
-        case (Action("A5"), State("S1")) => Reward(3)
-        case (Action("A6"), State("S2")) => Reward(1)
+        case (Action("A1"), StateString("S2")) => Reward(1)
+        case (Action("A2"), StateString("S3")) => Reward(3)
+        case (Action("A3"), StateString("S1")) => Reward(2)
+        case (Action("A4"), StateString("S3")) => Reward(4)
+        case (Action("A5"), StateString("S1")) => Reward(3)
+        case (Action("A6"), StateString("S2")) => Reward(1)
         case (_, _)                      => Reward(0)
       }
     }
@@ -238,7 +238,7 @@ class policyIterationTest {
   @Test
   def policyImprovementTest() = {
     // It should select the actions that have the highest immediate reward
-    val policy = Map(
+    val policy: Map[State, List[ActionProbability]] = Map(
       State("A") -> List(
         ActionProbability(Action("A"), Probability.CoinToss),
         ActionProbability(Action("B"), Probability.CoinToss)
@@ -268,7 +268,7 @@ class policyIterationTest {
         ProbabilityState(Probability.Certain, State("A"))
       )
     )
-    val rewards = Map(
+    val rewards: Map[State, Reward] = Map(
       State("A") -> Reward(1),
       State("B") -> Reward(2),
       State("C") -> Reward(3),
@@ -305,7 +305,7 @@ class policyIterationTest {
   @Test
   def policyIterationTest() = {
     // It should iteratre to the policy that lets us visit more states before the terminal C or D
-    val policy = Map(
+    val policy: Map[State, List[ActionProbability]] = Map(
       State("A") -> List(
         ActionProbability(Action("A"), Probability.CoinToss),
         ActionProbability(Action("B"), Probability.CoinToss)
@@ -349,7 +349,7 @@ class policyIterationTest {
         ProbabilityState(Probability.Certain, State("C"))
       )
     )
-    val rewards = Map(
+    val rewards: Map[State, Reward] = Map(
       State("A") -> Reward(1),
       State("B") -> Reward(2),
       State("C") -> Reward(3),
@@ -391,7 +391,7 @@ class policyIterationTest {
   @Test
   def valueIterationTest() = {
     // It should iteratre to the policy that lets us visit more states before the terminal C or D
-    val policy = Map(
+    val policy: Map[State, List[ActionProbability]] = Map(
       State("A") -> List(
         ActionProbability(Action("A"), Probability.CoinToss),
         ActionProbability(Action("B"), Probability.CoinToss)
@@ -435,7 +435,7 @@ class policyIterationTest {
         ProbabilityState(Probability.Certain, State("C"))
       )
     )
-    val rewards = Map(
+    val rewards: Map[State, Reward] = Map(
       State("A") -> Reward(1),
       State("B") -> Reward(2),
       State("C") -> Reward(3),
