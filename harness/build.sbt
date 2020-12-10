@@ -1,4 +1,4 @@
-val dottyVersion = "0.27.0-RC1"
+val scala3 = "3.0.0-M2"
 
 lazy val root = project
   .in(file("."))
@@ -6,7 +6,7 @@ lazy val root = project
     name := "rl",
     version := "0.1.0",
 
-    scalaVersion := dottyVersion,
+    scalaVersion := scala3,
 
     libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test",
     libraryDependencies += "org.apache.commons" % "commons-math3" % "3.6.1",

@@ -1,4 +1,4 @@
-val dottyVersion = "0.27.0-RC1"
+val scala3 = "3.0.0-M2"
 
 lazy val harness = RootProject(file("../harness"))
 
@@ -8,7 +8,7 @@ lazy val book = project
     name := "dotty-simple",
     version := "0.1.0",
 
-    scalaVersion := dottyVersion,
+    scalaVersion := scala3,
 
     libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test"
   ).dependsOn(harness)
