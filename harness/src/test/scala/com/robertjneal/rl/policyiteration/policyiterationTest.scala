@@ -595,10 +595,10 @@ class policyIterationTest {
     State(2) is in remaining
     Iteration 5:
     G <- 0.9 * 12.694 + 4
-    State(2) is not in remaining, so State(2) <- (6 + 15.4246) / 2 = 10.7123
+    State(2) is not in remaining, so State(2) <- 15.4246
     Iteration 6:
     G <- 0.9 * 15.4246 + 1
-    State(1) is not in remaining, so State(1) <- (6 + 15.4246 + 14.88214) / 3 = 12.1022466667
+    State(1) is not in remaining, so State(1) <- 14.88214
     */
 
     val expected = Map(
