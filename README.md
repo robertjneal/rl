@@ -9,6 +9,8 @@ For now I have the Breeze jars committed to the repo because I had to compile th
 to get them to work. I'll try to fix that at some point. Feel free to add issues or open PRs. Though I don't 
 have a formal process in place right now.
 
+[How Scala 3 Features Are Used Herein](https://github.com/robertjneal/rl/blob/master/scala3/README.md)
+
 ### The Model
 
 Part of the goal of this package is to have a reasonable model of the RL problem that can work for a variety of RL implementations. The model is currently implemented as per this diagram:
