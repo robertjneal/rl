@@ -27,7 +27,7 @@ object Probability {
   val CoinToss: Probability = 0.5
   val Certain: Probability = 1.0
 
-  def random: Probability = Random.nextDouble
+  def random(using random: Random): Probability = random.nextDouble
 
   implicit val ordering: Ordering[Probability] =
     implicitly[Ordering[Double]]

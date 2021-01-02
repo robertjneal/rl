@@ -1,9 +1,11 @@
 package com.robertjneal.rl.policyiteration
 
+import com.robertjneal.rl.environment.Environment
 import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
 import org.junit.Test
 import org.junit.Assert._
+import scala.util.Random
 
 class policyIterationTest {
   @Test
@@ -463,4 +465,151 @@ class policyIterationTest {
 
     assertEquals(optimalPolicy, computedOptimal.policy)
   }
+
+  private val testEnvironmentAndPolicy = {
+    case class TestEnvironment(stateActions: Map[State, Vector[Action]], override val state: State) 
+    extends Environment(stateActions, state) {
+      def act(a: Action): (Reward, Environment, EndOfEpisode) = {
+        val reward = Reward(
+          a match {
+            case Action("A") => 1
+            case Action("B") => 2
+            case Action("C") => 3
+            case Action("D") => 4
+            case Action("E") => 5
+            case Action("F") => 6
+          }
+        )
+        val newState: State = 
+          a match {
+            case Action("A") => State(2)
+            case Action("B") => State(3)
+            case Action("C") => State(1)
+            case Action("D") => State(2)
+            case Action("E") => State(3)
+            case Action("F") => State("T")
+          }
+        val isEndOfEpisode = newState == State("T")
+        (reward, this.copy(state = newState), isEndOfEpisode)
+      }
+      def isOptimal(a: Action): OptimalAct = OptimalAct(true)
+    }
+
+    val environment = new TestEnvironment(Map.empty, State(1))
+    val π: Map[State, List[ActionProbability]] = Map(
+      State(1) -> List(
+        ActionProbability(Action("A"), Probability.CoinToss),
+        ActionProbability(Action("B"), Probability.CoinToss)
+      ),
+      State(2) -> List(
+        ActionProbability(Action("C"), Probability.evenProbability(3)),
+        ActionProbability(Action("D"), Probability.evenProbability(3)),
+        ActionProbability(Action("E"), Probability.evenProbability(3))
+      ),
+      State(3) -> List(
+        ActionProbability(Action("F"), Probability.Certain)
+      ),
+      State("T") -> List.empty
+    )
+
+    (environment, π)
+  }
+
+  @Test
+  def generateEpisodeTest() = {
+    given Random = Random(4110)
+
+    val (environment, π) = testEnvironmentAndPolicy
+    val result: Map[State, Reward] = generateEpisode(environment, π, 0.9).view.mapValues {
+      case (reward, _) => reward
+    }.toMap
+
+    /*
+    State 1 has even probability for A or B with values 1 and 2
+    State 2 has even probability for C or D or E with values 3, 4, and 5
+    State 3 will always choose F for value of 6
+
+    With seed 4110 we expect the following episode:
+    (3,F,6.0), (1,B,2.0), (2,C,3.0), (2,D,4.0), (2,D,4.0), (1,A,1.0)
+    G <- 0
+    G <- γ * G + Rt+1
+    Iteration 1:
+    G <- 0.9 * 0 + 6
+    State(3) is not in remaining, so State(3) <- 6
+    Iteration 2:
+    G <- 0.9 * 6 + 2
+    State(1) is in remaining
+    Iteration 3:
+    G <- 0.9 * 7.4 + 3
+    State(2) is in remaining
+    Iteration 4:
+    G <- 0.9 * 9.66 + 4
+    State(2) is in remaining
+    Iteration 5:
+    G <- 0.9 * 12.694 + 4
+    State(2) is not in remaining, so State(2) <- 15.4246
+    Iteration 6:
+    G <- 0.9 * 15.4246 + 1
+    State(1) is not in remaining, so State(1) <- 14.88214
+    */
+
+    val expected = Map(
+      State(1) -> Reward(14.88214),
+      State(2) -> Reward(15.4246),
+      State(3) -> Reward(6)
+    )
+    
+    expected.foreach { (state, reward) =>
+      assertEquals(reward.toDouble, result(state).toDouble, 0.00001)
+    }
+  }
+
+  @Test
+  def monteCarloPolicyEvaluationTest() = {
+    given Random = Random(4110)
+
+    val (environment, π) = testEnvironmentAndPolicy
+    val simulations = 1
+    val result: Map[State, Reward] = monteCarloPolicyEvaluation(environment, π, simulations)
+
+    /*
+    State 1 has even probability for A or B with values 1 and 2
+    State 2 has even probability for C or D or E with values 3, 4, and 5
+    State 3 will always choose F for value of 6
+
+    With seed 4110 we expect the following episode:
+    (3,F,6.0), (1,B,2.0), (2,C,3.0), (2,D,4.0), (2,D,4.0), (1,A,1.0)
+    G <- 0
+    G <- γ * G + Rt+1
+    Iteration 1:
+    G <- 0.9 * 0 + 6
+    State(3) is not in remaining, so State(3) <- 6
+    Iteration 2:
+    G <- 0.9 * 6 + 2
+    State(1) is in remaining
+    Iteration 3:
+    G <- 0.9 * 7.4 + 3
+    State(2) is in remaining
+    Iteration 4:
+    G <- 0.9 * 9.66 + 4
+    State(2) is in remaining
+    Iteration 5:
+    G <- 0.9 * 12.694 + 4
+    State(2) is not in remaining, so State(2) <- (6 + 15.4246) / 2 = 10.7123
+    Iteration 6:
+    G <- 0.9 * 15.4246 + 1
+    State(1) is not in remaining, so State(1) <- (6 + 15.4246 + 14.88214) / 3 = 12.1022466667
+    */
+
+    val expected = Map(
+      State(1) -> Reward(14.88214),
+      State(2) -> Reward(15.4246),
+      State(3) -> Reward(6)
+    )
+    
+    expected.foreach { (state, reward) =>
+      assertEquals(reward.toDouble, result(state).toDouble, 0.00001)
+    }
+  }
+
 }

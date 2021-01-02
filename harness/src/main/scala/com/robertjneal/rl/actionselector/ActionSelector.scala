@@ -37,14 +37,14 @@ def softMaxProbabilities(
   actionProbabilities
 }
 
-def softMax: PreferenceSelector = (actionPreferences: Map[Action, Preference]) => {
+def softMax(using random: Random): PreferenceSelector = (actionPreferences: Map[Action, Preference]) => {
   import Ordering.Double.TotalOrdering
   val actionProbabilities = softMaxProbabilities(actionPreferences).toList.sortBy { (_, probability) => -probability.toDouble}
   val action = Probability.pickWithProbabilty[Action](Probability.random, actionProbabilities)
   (action, actionProbabilities.headOption.map(_ == action).getOrElse(false))
 }
 
-def upperConfidenceBound(c: Double, state: State): RewardSelector = {
+def upperConfidenceBound(c: Double, state: State)(using random: Random): RewardSelector = {
   new RewardSelector { 
     def apply(
     step: Step,
@@ -60,16 +60,15 @@ def upperConfidenceBound(c: Double, state: State): RewardSelector = {
       }
 
       val maxima = collectMaxima(valueTransformer, actionRewards)
-      val (action, _): (Action, Reward) = maxima(Random.nextInt(maxima.length))
+      val (action, _): (Action, Reward) = maxima(random.nextInt(maxima.length))
       (action, false)
     }
   }
 }
 
 def εGreedy(
-    ε: Probability,
-    rng: Random = Random
-): RewardSelector = {
+    ε: Probability
+)(using random: Random): RewardSelector = {
   def valueTransformer(action: Action, reward: Reward): Double =
     reward.toDouble
 
@@ -82,11 +81,11 @@ def εGreedy(
       val actionIsExploratory: (Action, IsExploratory) = {
         if (shouldExplore) {
           val array = actionRewards.toArray
-          val (action, _): (Action, Reward) = array(rng.nextInt(array.size))
+          val (action, _): (Action, Reward) = array(random.nextInt(array.size))
           (action, true)
         } else {
           val maxima = collectMaxima(valueTransformer, actionRewards)
-          val (action, _): (Action, Reward) = maxima(rng.nextInt(maxima.length))
+          val (action, _): (Action, Reward) = maxima(random.nextInt(maxima.length))
           (action, false)
         }
       }

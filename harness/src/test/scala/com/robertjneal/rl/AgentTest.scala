@@ -9,10 +9,13 @@ import com.robertjneal.rl.updater._
 import org.apache.commons.math3.distribution._
 import org.junit.Test
 import org.junit.Assert._
+import scala.util.Random
 
 class AgentTest {
   @Test
   def act() = {
+    given Random = Random(171406)
+
     val bestRewardValue = 1.9
     val bestAction = Action(s"A$bestRewardValue")
     val best = (
@@ -77,6 +80,7 @@ class AgentTest {
 
   @Test
   def actTemporalDifference() = {
+    given Random = Random(171406)
     case class TestEnvironment(stateActions: Map[State, Vector[Action]], override val state: State) 
     extends Environment(stateActions, state) {
       def act(a: Action): (Reward, Environment) = {
