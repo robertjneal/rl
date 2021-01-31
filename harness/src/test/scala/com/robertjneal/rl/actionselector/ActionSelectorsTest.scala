@@ -1,14 +1,17 @@
 package com.robertjneal.rl.actionselector
 
-import com.robertjneal.rl.OneState
+import com.robertjneal.rl.environment.OneState
 import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
 import com.robertjneal.rl.updater._
 import org.junit.Assert._
 import org.junit.Test
+import scala.util.Random
 
 class ActionSelectorsTest {
   import scala.language.implicitConversions
+
+  given Random = scala.util.Random(357)
 
   private val acceptableMargin = 0.0123
   private val bestRewardValue = 1.9
@@ -25,9 +28,8 @@ class ActionSelectorsTest {
    */
   @Test
   def εGreedyTest() = {
-    val seededRandom = scala.util.Random(357)
     for (i <- 0 until 1000) {
-      val result = εGreedy(Probability.unsafe(0), seededRandom)(
+      val result = εGreedy(Probability.unsafe(0))(
         Step(0),
         Map.empty[State, Map[Action, Step]]
       )(actionRewards)
@@ -66,10 +68,9 @@ class ActionSelectorsTest {
     )) + (bestAction3 -> Reward(bestRewardValue))
 
     val iterations = 10000
-    val seededRandom = scala.util.Random(357)
     val actionsSelected =
       for (i <- 0 until iterations)
-        yield εGreedy(Probability.unsafe(0), seededRandom)(
+        yield εGreedy(Probability.unsafe(0))(
           Step(0),
           Map.empty[State, Map[Action, Step]]
         )(threeGreedyActions)

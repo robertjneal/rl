@@ -2,15 +2,19 @@ package bartosutton.exercise.two
 
 import breeze.linalg.DenseVector
 import breeze.linalg.sum
+import com.robertjneal.rl._
 import com.robertjneal.rl.actionselector._
 import com.robertjneal.rl.agent._
-import com.robertjneal.rl._
+import com.robertjneal.rl.environment._
 import com.robertjneal.rl.testbed
 import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
 import com.robertjneal.rl.updater._
 import org.apache.commons.math3.distribution._
 import scala.collection.mutable
+import scala.util.Random
+
+private given Random = Random(579)
 
 def debugger(indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))]): Unit = {
   for (i <- 0 until 100) {

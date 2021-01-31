@@ -1,7 +1,9 @@
 package com.robertjneal.rl.policyiteration
 
+import com.robertjneal.rl.environment._
 import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
+import scala.util.Random
 
 private[policyiteration] enum IterationType {
   case Policy, Value
@@ -26,6 +28,16 @@ private[policyiteration] def expectedUpdate(
     recordHistory: Boolean = false,
     history: List[Map[State, Reward]] = List.empty
 ): ExpectationHistory = {
+  def nextState(
+      stateValues: Map[State, Reward],
+      currentState: State
+  ): State = 
+    if (stateValues.keys.lastOption.filter(_ == currentState).isDefined)
+      stateValues.keys.head
+    else {
+      stateValues.keys.dropWhile(_ != currentState).tail.head
+    }
+
   import Ordering.Double.TotalOrdering
   if (stateActionProbabilities.isEmpty) ExpectationHistory(Map.empty[State, Reward], history)
   else {
@@ -37,16 +49,6 @@ private[policyiteration] def expectedUpdate(
         .mapValues(r => Double.PositiveInfinity)
         .toMap
     )
-    def nextState(
-        stateValues: Map[State, Reward],
-        currentState: State
-    ): State = {
-      if (stateValues.keys.lastOption.filter(_ == currentState).isDefined)
-        stateValues.keys.head
-      else {
-        stateValues.keys.dropWhile(_ != currentState).tail.head
-      }
-    }
 
     val updatedStateValue: Reward = Reward({
       val values: Seq[Double] = stateActionProbabilities(state).map {
@@ -137,6 +139,91 @@ def iterativePolicyEvaluation(
       logMaxSteps
     ).expectation
   }
+}
+
+
+// First visit, consider renaming or generalizing
+private[policyiteration] def generateEpisode(
+  e: Environment, 
+  π: Map[State, List[ActionProbability]], 
+  γ: Double, 
+  returns: Map[State, (Reward, Int)] = Map.empty[State, (Reward, Int)],
+  episode: List[(State, Action, Reward)] = List.empty[(State, Action, Reward)]
+)(using Random): Map[State, (Reward, Int)] = {
+  val action = Probability.pickWithProbabilty(Probability.random, π(e.state).map(ap => (ap.action, ap.probability)))
+  val (reward, updatedEnvironmnet, isEndOfEpisode) = e.act(action)
+  val updatedEpisode = (e.state, action, reward) +: episode
+  
+  if (isEndOfEpisode)
+    val result = updatedEpisode.foldLeft((
+      0D, 
+      List.empty[Reward], 
+      Step(updatedEpisode.size), 
+      returns
+    ))((acc, elem) => {
+      val (g, gs, step, stateRewards) = acc
+      val (currentState: State, _, currentReward) = elem
+      val updatedG = currentReward.toDouble + γ * g
+      val remainder = updatedEpisode.drop(updatedEpisode.length - step.toInt + 1)
+      if (remainder.exists(_._1 == currentState))
+        acc.copy(
+          _1 = updatedG,
+          _3 = step.decrement
+        )
+      else
+        val updatedGs = Reward(updatedG) +: gs
+        val (stateAverage, stateReturns) = stateRewards.getOrElse(currentState, (Reward(0), 0))
+        val updatedStateReturns = stateReturns + 1
+        val updatedReturns = stateRewards.updated(
+          currentState, 
+          (stateAverage + Reward(updatedG - stateAverage.toDouble / updatedStateReturns), 
+          updatedStateReturns)
+        )
+        (
+          updatedG,
+          updatedGs,
+          step.decrement,
+          updatedReturns
+        )
+    })
+    result._4
+  else generateEpisode(
+    updatedEnvironmnet,
+    π,
+    γ,
+    returns,
+    updatedEpisode
+  )
+}
+
+def monteCarloPolicyEvaluation(
+  environment: Environment,
+  π: Map[State, List[ActionProbability]],
+  iterations: Int = 1000,
+  γ: Double = 0.9
+)(using Random): Map[State, Reward] = {
+  /*(0 until iterations).foldLeft((Map.empty[State, Reward], Map.empty[State, Int]))((acc, elem) => {
+    val (rewards, timesSeen) = acc
+    val currentResult = generateEpisode(environment, π, γ)
+    val updatedAcc = 
+      currentResult.foldLeft((Map.empty[State, Reward], Map.empty[State, Int]))((rss, sr) => {
+        val (rs, seen) = rss
+        val (state, reward) = sr
+        val visits = timesSeen.getOrElse(state, 0) + 1
+        (
+          rs.updated(state, rewards.getOrElse(state, Reward(0)) + Reward(reward.toDouble / visits)),
+          seen.updated(state, seen.getOrElse(state, 0) + 1)
+        )
+      })
+    updatedAcc
+  })._1*/
+
+  def iterate(n: Int, returns: Map[State, (Reward, Int)] = Map.empty[State, (Reward, Int)]): Map[State, Reward] = {
+    if (n <= 0) returns.view.mapValues{ case (reward, _) => reward }.toMap
+    else iterate(n - 1, generateEpisode(environment, π, γ, returns))
+  }
+
+  iterate(iterations)
 }
 
 def policyImprovement(

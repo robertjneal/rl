@@ -9,5 +9,6 @@ object Step {
     def toInt: Int = self
     def toDouble: Double = self.toDouble
     def increment: Step = self + 1
+    def decrement: Step = self - 1
   }
 }
