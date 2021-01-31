@@ -1,6 +1,7 @@
 package com.robertjneal.rl
 
 import com.robertjneal.rl._
+import com.robertjneal.rl.environment._
 import com.robertjneal.rl.actionselector._
 import com.robertjneal.rl.agent._
 import com.robertjneal.rl.types._
@@ -83,7 +84,7 @@ class AgentTest {
     given Random = Random(171406)
     case class TestEnvironment(stateActions: Map[State, Vector[Action]], override val state: State) 
     extends Environment(stateActions, state) {
-      def act(a: Action): (Reward, Environment) = {
+      def act(a: Action): (Reward, Environment, EndOfEpisode) = {
         val reward = Reward(
           a match {
             case Action("A") => 1
@@ -98,7 +99,7 @@ class AgentTest {
             case Action("C") => State("3")
             case Action("D") => State("3")
           }
-        (reward, this.copy(state = newState))
+        (reward, this.copy(state = newState), true)
       }
       def isOptimal(a: Action): OptimalAct = OptimalAct(true)
     }

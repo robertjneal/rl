@@ -1,6 +1,7 @@
 package com.robertjneal.rl
 
 import com.robertjneal.rl._
+import com.robertjneal.rl.environment.BanditEnvironment
 import com.robertjneal.rl.types._
 import org.apache.commons.math3.distribution._
 import org.junit.Test

@@ -4,6 +4,7 @@ import breeze.linalg.sum
 import com.robertjneal.rl._
 import com.robertjneal.rl.actionselector.RewardSelector
 import com.robertjneal.rl.agent._
+import com.robertjneal.rl.environment.BanditEnvironment
 import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
 import org.apache.commons.math3.distribution._
