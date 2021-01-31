@@ -1,6 +1,6 @@
 package com.robertjneal.rl.agent
 
-import com.robertjneal.rl.Environment
+import com.robertjneal.rl.environment.Environment
 import com.robertjneal.rl.actionselector._
 import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal._
@@ -36,7 +36,7 @@ case class TabularAgent[A <: Goal](
     val averageReward = Reward(
       totalReward.toDouble / actionSteps(e.state).values.reduce(_ + _).toInt
     )
-    val (environmentReward, updatedEnvironment) = e.act(action)
+    val (environmentReward, updatedEnvironment, _) = e.act(action)
     val reward = temporalDifference.map{ td => 
         Reward(td.stepSize * table(e.state)(action).asInstanceOf[Reward].toDouble)
       }.getOrElse(environmentReward)

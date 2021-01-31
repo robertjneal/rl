@@ -3,6 +3,7 @@ package com.robertjneal.rl.testbed
 import breeze.linalg.{Vector => BreezeVector, _}
 import com.robertjneal.rl._
 import com.robertjneal.rl.agent.TabularAgent
+import com.robertjneal.rl.environment.BanditEnvironment
 import com.robertjneal.rl.types.goal.Goal
 import com.robertjneal.rl.types._
 import com.robertjneal.rl.types.goal.Goal
@@ -40,7 +41,8 @@ class ThreadLocalRandomGenerator extends RandomGenerator {
   def setSeed(seed: Long): Unit = rng.setSeed(seed)
 }
 
-def tenArmEnvironment(μ: Double = 0d): BanditEnvironment = {
+def tenArmEnvironment(μ: Double = 0d): 
+BanditEnvironment = {
   val random = NormalDistribution(μ, 1)
   val actions: Vector[Action] =
     Range(0, 9).map(n => Action(n.toString)).toVector
