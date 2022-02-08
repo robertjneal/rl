@@ -1,11 +1,11 @@
-val scala3 = "3.0.0-M2"
+val scala3 = "3.1.1"
 
 lazy val harness = RootProject(file("../harness"))
 
 lazy val book = project
   .in(file("."))
   .settings(
-    name := "dotty-simple",
+    name := "rl-book",
     version := "0.1.0",
 
     scalaVersion := scala3,

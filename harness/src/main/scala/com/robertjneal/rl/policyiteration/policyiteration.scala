@@ -264,7 +264,7 @@ def policyImprovement(
   }
 
   val policyActions: Map[State, Set[Action]] = π.view.mapValues {
-    _.map { (action, _) => action }.toSet
+    _.map { _.action }.toSet
   }.toMap
   val isStable =
     (maxStateActions.view.mapValues(_.toSet).toMap == policyActions)
@@ -338,7 +338,7 @@ def valueIteration(
         case (state: State, actionProbabilities) => {
           state -> {
             val actionRewards
-                : Map[Action, Reward] = actionProbabilities.map { (action, _) =>
+                : Map[Action, Reward] = actionProbabilities.map { case ActionProbability(action, _) =>
               action -> Reward({
                 stateTransitions(StateAction(state, action)).foldLeft(0d)(
                   (acc, probabilityState) => {
@@ -352,9 +352,10 @@ def valueIteration(
               })
             }.toMap
             val maxValue: Reward = Reward({
-              val rewards = actionProbabilities.map((action, _) =>
-                actionRewards(action).toDouble
-              )
+              val rewards = actionProbabilities.map {
+                case ActionProbability(action, _) =>
+                  actionRewards(action).toDouble
+              }
               if (rewards.isEmpty) 0
               else rewards.max
             })
