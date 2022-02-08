@@ -15,21 +15,7 @@ import scala.collection.mutable
 import scala.util.Random
 
 private given Random = Random(579)
-
-def debugger(indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))]): Unit = {
-  for (i <- 0 until 100) {
-    println(indexedResults.head._1._2(i))
-    println(indexedResults.head._2._2(i))
-    println("-")
-  }
-}
-
-def plotGenerator(prefix: String, indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))], plotMeanRewards: Boolean = true): Unit = {
-  val (meanRewards, optimalActs) = indexedResults.unzip
-  val path = "src/main/scala/bartosutton/exercise/two/"
-  if (plotMeanRewards) testbed.generatePlot(meanRewards.toMap, path, s"$prefix-rewards", "mean reward")
-  testbed.generatePlot(optimalActs.toMap, path, s"$prefix-optimal-acts", "% optimal acts", percentage=true)
-}
+type IndexedRewardsOptimals = Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))]
 
 def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolean = false) = {
   val εs = Vector(
@@ -39,7 +25,8 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   )
   val environment = testbed.tenArmEnvironment()
   
-  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = εs.map(ε => { 
+  val indexedResults: IndexedRewardsOptimals = 
+  for (ε <- εs) yield {
     val agent = TabularAgent.rewardBlankSlate(
       environment,
       εGreedy(ε),
@@ -52,7 +39,7 @@ def figure2dot2(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
       steps = 1000
     )
     ((s"ε=$ε", result.meanRewards), (s"ε=$ε", result.optimalActs))
-  })
+  }
 
   if (debug) debugger(indexedResults)
   if (generatePlots) plotGenerator("figure2.2", indexedResults)
@@ -73,7 +60,7 @@ def exercise2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Bool
 
   val environment = testbed.tenArmEnvironment().copy(actionRewards = actionValues)
   
-  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = 
+  val indexedResults: IndexedRewardsOptimals = 
     averageMethods.map((name, am) => { 
       val agent = TabularAgent.rewardBlankSlate(
         environment,
@@ -105,7 +92,7 @@ def figure2dot3(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
     case (s: State, as) => s -> Map(as.map(_ -> Step(1)): _*) 
   }
 
-  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = εAndBiases.map((ε, bias) => { 
+  val indexedResults: IndexedRewardsOptimals = εAndBiases.map((ε, bias) => { 
     val initialTable: Map[State, Map[Action, Reward]] = environment.possibleStateActions.map { 
       case (s: State, as) => s -> Map(as.map(_ -> Reward(bias)): _*) 
     } 
@@ -138,7 +125,7 @@ def figure2dot4(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
   )
   val environment = testbed.tenArmEnvironment()
 
-  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = fs.map((f, name) => { 
+  val indexedResults: IndexedRewardsOptimals = fs.map((f, name) => { 
     val agent = TabularAgent.rewardBlankSlate(
       environment,
       f,
@@ -167,7 +154,7 @@ def figure2dot5(generatePlots: Boolean = false, seed: Integer = 1, debug: Boolea
 
   val environment = testbed.tenArmEnvironment(4D)
 
-  val indexedResults: Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))] = fs.map((stepSize, baseline, name) => { 
+  val indexedResults: IndexedRewardsOptimals = fs.map((stepSize, baseline, name) => { 
     val initialActionSteps: Map[State, Map[Action, Step]] = environment.possibleStateActions.map { 
       case (s: State, as) => s -> Map(as.map(_ -> Step(1)): _*) 
     }
@@ -496,4 +483,19 @@ def exercise2dot11(runs: Integer = 2000, steps: Integer = 200000, includeεGreed
   
   p.logScaleX = true
   f.saveas(s"exercise2.11.png")
+}
+
+def debugger(indexedResults: IndexedRewardsOptimals): Unit = {
+  for (i <- 0 until 100) {
+    println(indexedResults.head._1._2(i))
+    println(indexedResults.head._2._2(i))
+    println("-")
+  }
+}
+
+def plotGenerator(prefix: String, indexedResults: IndexedRewardsOptimals, plotMeanRewards: Boolean = true): Unit = {
+  val (meanRewards, optimalActs) = indexedResults.unzip
+  val path = "src/main/scala/bartosutton/exercise/two/"
+  if (plotMeanRewards) testbed.generatePlot(meanRewards.toMap, path, s"$prefix-rewards", "mean reward")
+  testbed.generatePlot(optimalActs.toMap, path, s"$prefix-optimal-acts", "% optimal acts", percentage=true)
 }
