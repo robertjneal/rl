@@ -12,8 +12,9 @@ case class TabularAgent[A <: Goal](
     actionSelector: ActionSelector[A],
     updater: Updater[A],
     step: Step,
-    actionSteps: Map[State, Map[Action, Step]],
-    table: Map[State, Map[Action, A]],
+    initialGoalValue: A,
+    actionSteps: Map[State, Map[Action, Step]] = Map.empty,
+    table: Map[State, Map[Action, A]] = Map.empty,
     totalReward: Reward = Reward(0),
     recordHistory: Boolean = false,
     history: Array[(OptimalAct, Reward)] = Array.empty,
@@ -22,10 +23,15 @@ case class TabularAgent[A <: Goal](
   val isTemporalDifference = temporalDifference.isDefined
   
   def act: TabularAgent[A] = {
+    val stateTable = table.getOrElse(
+      e.state,
+      e.possibleStateActions(e.state).map(_ -> initialGoalValue).toMap
+    )
+
     val (action, isExploratory): (Action, Boolean) = actionSelector match {
       case rewardSelector: RewardSelector => 
         rewardSelector(step, actionSteps)(
-          table.asInstanceOf[Map[State, Map[Action, Reward]]](e.state)
+          stateTable.asInstanceOf[Map[Action, Reward]]
         )
       case preferenceSelector: PreferenceSelector => 
         preferenceSelector(
@@ -33,8 +39,11 @@ case class TabularAgent[A <: Goal](
         )
     }
 
+    val stateActionSteps: Map[Action, Step] = 
+      actionSteps.getOrElse(e.state, e.possibleStateActions(e.state).map(_ -> Step(1))).toMap
+
     val averageReward = Reward(
-      totalReward.toDouble / actionSteps(e.state).values.reduce(_ + _).toInt
+      totalReward.toDouble / stateActionSteps.values.reduce(_ + _).toInt
     )
     val (environmentReward, updatedEnvironment, _) = e.act(action)
     val reward = temporalDifference match
@@ -46,10 +55,10 @@ case class TabularAgent[A <: Goal](
 
     val updates: Map[Action, A] = if !shouldUpdateValues then table(e.state)
       else updater(
-        table(e.state),
+        stateTable,
         action,
         reward,
-        actionSteps(e.state)(action),
+        stateActionSteps(action),
         Some(averageReward)
       )
     val updatedTable: Map[State, Map[Action, A]] = table.updated(e.state, updates)
@@ -62,9 +71,9 @@ case class TabularAgent[A <: Goal](
     val updatedActionSteps: Map[State, Map[Action, Step]] =
       actionSteps.updated(
         e.state,
-        actionSteps(e.state).updated(
+        stateActionSteps.updated(
           action,
-          actionSteps(e.state)(action).increment
+          stateActionSteps(action).increment
         )
       )
 
@@ -73,6 +82,7 @@ case class TabularAgent[A <: Goal](
       actionSelector,
       updater,
       step.increment,
+      initialGoalValue,
       updatedActionSteps,
       updatedTable,
       totalReward + reward,
@@ -91,20 +101,13 @@ object TabularAgent {
       initialGoalValue: A,
       recordHistory: Boolean = false
   ): TabularAgent[A] = {
-    val initialActionSteps: Map[State, Map[Action, Step]] = e.possibleStateActions.map { (s: State, as) =>
-      s -> Map(as.map(_ -> Step(1)): _*)
-    }
-    val initialTable: Map[State, Map[Action, A]] = e.possibleStateActions.map { (s: State, as) =>
-      s -> Map(as.map(_ -> initialGoalValue): _*)
-    }
 
     TabularAgent[A](
       e,
       actionSelector,
       updater,
       Step(0),
-      initialActionSteps,
-      initialTable,
+      initialGoalValue,
       recordHistory = recordHistory
     )
   }

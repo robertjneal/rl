@@ -13,7 +13,7 @@ import com.robertjneal.rl.updater._
 import org.apache.commons.math3.distribution._
 import scala.collection.mutable
 import scala.util.Random
-
+/*
 private given Random = Random(579)
 type IndexedRewardsOptimals = Seq[((String, DenseVector[Double]), (String, DenseVector[Double]))]
 
@@ -499,3 +499,4 @@ def plotGenerator(prefix: String, indexedResults: IndexedRewardsOptimals, plotMe
   if (plotMeanRewards) testbed.generatePlot(meanRewards.toMap, path, s"$prefix-rewards", "mean reward")
   testbed.generatePlot(optimalActs.toMap, path, s"$prefix-optimal-acts", "% optimal acts", percentage=true)
 }
+*/

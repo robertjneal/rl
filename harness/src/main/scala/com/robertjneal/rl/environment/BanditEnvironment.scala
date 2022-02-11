@@ -13,7 +13,7 @@ case class BanditEnvironment(
   actionRewards: Map[Action, RandomReward]
   ) extends Environment(Map(OneState -> possibleActions), OneState) {
   import Ordering.Double.TotalOrdering
-  require(possibleStateActions.size == 1)
+  //require(possibleStateActions.size == 1)
 
   def act(a: Action): (Reward, Environment, EndOfEpisode) = {
     val (reward, updatedRewardFunction): (Reward, RandomReward) = actionRewards(a).sample

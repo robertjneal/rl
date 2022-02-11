@@ -4,3 +4,6 @@
 target/
 *.pages
 .vscode
+.metals/
+.bloop/
+metals.sbt

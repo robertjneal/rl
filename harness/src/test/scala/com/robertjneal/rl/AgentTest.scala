@@ -116,6 +116,7 @@ class AgentTest {
       εGreedy(Probability.Never),
       average(sampleAverage),
       Step(1),
+      Reward(0),
       Map(
         State("1") -> Map(
           Action("A") -> Step(2),
