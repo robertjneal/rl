@@ -18,5 +18,5 @@ object Reward {
     override def compare(r1: Reward, r2:Reward): Int = {
         r1.toDouble.compareTo(r2.toDouble)
     }
-}
+  }
 }
